@@ -15,7 +15,7 @@ class LipiApp {
         // Data State
         this.openFiles = []; 
         this.activeFileId = null; 
-        this.db = null; // IndexedDB instance
+        this.db = null; 
 
         // Initialize Database and Load Recents
         this.initDB().then(() => this.renderRecentFiles());
@@ -90,7 +90,6 @@ class LipiApp {
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (event) => {
-                // Fallback files do not get a 'handle' attached
                 this.loadFileIntoEditor(file.name, event.target.result, null);
             };
             reader.readAsText(file);
@@ -125,7 +124,7 @@ class LipiApp {
     }
 
     async saveToRecent(name, handle) {
-        if (!this.db || !handle) return; // Cannot save fallback files to recent
+        if (!this.db || !handle) return; 
         const tx = this.db.transaction('recents', 'readwrite');
         tx.objectStore('recents').put({ name, handle, timestamp: Date.now() });
         this.renderRecentFiles();
@@ -149,14 +148,12 @@ class LipiApp {
         }
 
         recents.forEach(fileData => {
-            // Add to Welcome Screen
             const btn = document.createElement('button');
             btn.className = 'text-btn';
             btn.innerHTML = `<span class="material-symbols-rounded">description</span> ${fileData.name}`;
             btn.onclick = () => this.openRecentFile(fileData);
             this.elements.recentContainer.appendChild(btn);
 
-            // Add to Top App Bar Dropdown
             const dropBtn = document.createElement('button');
             dropBtn.className = 'menu-item';
             dropBtn.innerHTML = `<span class="material-symbols-rounded">description</span> ${fileData.name}`;
@@ -211,7 +208,6 @@ class LipiApp {
     }
 
     async openFile() {
-        // Modern Native File Picker
         if (window.showOpenFilePicker) {
             try {
                 const [fileHandle] = await window.showOpenFilePicker({
@@ -226,7 +222,6 @@ class LipiApp {
                 console.log('File picker cancelled or failed:', e);
             }
         } else {
-            // Traditional Fallback
             this.elements.fallbackFileInput.click();
         }
     }
@@ -235,7 +230,6 @@ class LipiApp {
         try {
             const handle = recentData.handle;
             
-            // Check browser permission to read this file again
             const perm = await handle.queryPermission({ mode: 'readwrite' });
             if (perm !== 'granted') {
                 const req = await handle.requestPermission({ mode: 'readwrite' });
@@ -246,7 +240,7 @@ class LipiApp {
             const content = await file.text();
             
             this.loadFileIntoEditor(file.name, content, handle);
-            this.saveToRecent(file.name, handle); // Updates timestamp
+            this.saveToRecent(file.name, handle);
         } catch (e) {
             console.error('Failed to open recent file:', e);
             alert("Could not open file. It may have been moved, deleted, or permissions were denied.");
@@ -295,19 +289,43 @@ class LipiApp {
         if (!this.activeFileId) return;
         const file = this.openFiles.find(f => f.id === this.activeFileId);
         
-        // Native Disk Overwrite
-        if (window.showSaveFilePicker && file.handle) {
+        if (window.showSaveFilePicker) {
             try {
-                const writable = await file.handle.createWritable();
+                let handle = file.handle;
+
+                // If file has no handle (it is a newly created "Untitled.txt"), ask where to save it
+                if (!handle) {
+                    handle = await window.showSaveFilePicker({
+                        suggestedName: file.name,
+                        types: [{ description: 'Text Files', accept: {'text/plain': ['.txt', '.md', '.html', '.css', '.js', '.json']} }]
+                    });
+
+                    // Update the state with the new OS-granted handle and name
+                    file.handle = handle;
+                    file.name = handle.name;
+                    
+                    // Update UI and database to reflect the new saved name
+                    this.elements.fileNameDisplay.textContent = file.name;
+                    this.saveToRecent(file.name, handle);
+                    this.updateSidebar();
+                }
+
+                // Write the text to the hard drive
+                const writable = await handle.createWritable();
                 await writable.write(file.content);
                 await writable.close();
-                console.log('File successfully overwritten to disk!');
+                console.log('File successfully saved to disk!');
+
             } catch (e) {
-                console.error('Save failed, falling back to download:', e);
-                this.fallbackSaveDownload(file);
+                // If user hits "Cancel" on the save dialog, do nothing. 
+                // If it's a different error, trigger the fallback download.
+                if (e.name !== 'AbortError') {
+                    console.error('Save failed, falling back to download:', e);
+                    this.fallbackSaveDownload(file);
+                }
             }
         } else {
-            // Blob Download
+            // Traditional Fallback for iOS/Firefox/Mobile
             this.fallbackSaveDownload(file);
         }
     }
