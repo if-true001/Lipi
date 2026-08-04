@@ -1,0 +1,117 @@
+body { display: flex; }
+
+#workspace {
+    flex-grow: 1; display: flex; flex-direction: column;
+    height: 100dvh; overflow: hidden;
+}
+
+/* =========================================
+   Top App Bar & Dropdown
+========================================= */
+.top-app-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background-color: var(--md-sys-color-surface);
+    border-bottom: 1px solid var(--md-sys-color-surface-container-high);
+    min-height: 56px; flex-shrink: 0; z-index: 10;
+}
+
+.top-bar-left, .top-bar-right { display: flex; align-items: center; gap: 8px; }
+
+.icon-btn {
+    background: transparent; border: none; color: var(--md-sys-color-on-surface);
+    cursor: pointer; border-radius: var(--md-sys-shape-corner-full);
+    width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+    transition: background-color 0.2s;
+}
+.icon-btn:hover { background-color: var(--md-sys-color-surface-container-high); }
+.icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.dropdown-anchor { position: relative; }
+.m3-menu {
+    position: absolute; top: 56px; right: 0;
+    background-color: var(--md-sys-color-surface-container);
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    min-width: 220px; padding: 12px 0; z-index: 200;
+    display: flex; flex-direction: column; opacity: 1;
+    transition: opacity 0.2s ease, transform 0.2s ease; transform-origin: top right;
+}
+.m3-menu.hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
+.menu-item {
+    display: flex; align-items: center; gap: 16px; padding: 12px 24px;
+    background: transparent; border: none; width: 100%; text-align: left;
+    color: var(--md-sys-color-on-surface); font-family: inherit; font-size: var(--md-sys-typescale-body-large-size); cursor: pointer;
+}
+.menu-item:hover { background-color: var(--md-sys-color-surface-container-high); }
+.menu-item.disabled { opacity: 0.5; cursor: default; }
+.menu-divider { height: 1px; background-color: var(--md-sys-color-outline); margin: 8px 0; opacity: 0.2; }
+.menu-label { padding: 4px 24px; font-size: var(--md-sys-typescale-label-large-size); color: var(--md-sys-color-outline); text-transform: uppercase; }
+
+/* =========================================
+   Sidebar / Drawer
+========================================= */
+.md-drawer {
+    position: fixed; top: 0; left: -300px; width: 300px; height: 100dvh;
+    background-color: var(--md-sys-color-surface-container); z-index: 100; display: flex; flex-direction: column;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.md-drawer.open { left: 0; }
+.drawer-header { padding: 24px 28px; flex-shrink: 0; }
+.drawer-content { flex-grow: 1; overflow-y: auto; }
+.section-label { padding: 0 28px; margin-bottom: 8px; display: block; }
+.drawer-list { list-style: none; padding: 0 12px; margin: 0; }
+
+.drawer-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; margin-bottom: 4px;
+    border-radius: var(--md-sys-shape-corner-full);
+    cursor: pointer; background: transparent; border: none;
+    width: 100%; text-align: left; color: var(--md-sys-color-on-surface); font-family: inherit;
+}
+.drawer-item:hover { background-color: rgba(0,0,0,0.05); }
+.drawer-item.active { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+
+/* File Item specific styles */
+.file-info { display: flex; align-items: center; gap: 12px; overflow: hidden; }
+.file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.close-btn {
+    background: transparent; border: none; color: inherit; cursor: pointer;
+    opacity: 0.5; padding: 4px; display: flex; border-radius: 50%; align-items: center; justify-content: center;
+}
+.close-btn:hover { opacity: 1; background-color: rgba(0,0,0,0.1); }
+.close-btn .material-symbols-rounded { font-size: 18px; }
+
+.drawer-footer { padding: 12px; border-top: 1px solid rgba(0,0,0,0.05); flex-shrink: 0; }
+.scrim {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
+    background-color: rgba(0, 0, 0, 0.4); z-index: 90; display: none;
+}
+.scrim.active { display: block; }
+
+/* =========================================
+   Desktop Layout Overrides (> 900px)
+========================================= */
+@media (min-width: 900px) {
+    #menu-btn { display: none; }
+    .md-drawer { position: relative; left: 0; z-index: 1; border-right: 1px solid var(--md-sys-color-surface-container-high); }
+    .scrim.active { display: none; }
+}
+
+/* =========================================
+   Welcome & Editor Canvas
+========================================= */
+.editor-canvas { display: none; flex-grow: 1; height: 100%; min-height: 0; }
+.editor-canvas.active { display: flex; flex-direction: column; }
+#welcome-view { overflow-y: auto; }
+#editor-view { overflow: hidden; }
+.welcome-content { margin: auto; padding: 24px; max-width: 800px; width: 100%; }
+.action-columns { display: flex; flex-direction: column; gap: 48px; }
+.action-group { display: flex; flex-direction: column; gap: 12px; }
+.text-btn { display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--md-sys-color-primary); font-family: inherit; cursor: pointer; padding: 8px 0; width: fit-content; }
+@media (min-width: 600px) { .action-columns { flex-direction: row; gap: 80px; } }
+
+#main-editor {
+    flex-grow: 1; height: 100%; width: 100%; border: none; resize: none; outline: none; padding: 24px;
+    font-family: 'Courier New', Courier, monospace; background: transparent; color: var(--md-sys-color-on-surface); overflow-y: auto; box-sizing: border-box;
+}

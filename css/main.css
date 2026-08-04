@@ -1,0 +1,39 @@
+:root {
+    --md-sys-color-primary: #006874; 
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: #97f0ff;
+    --md-sys-color-on-primary-container: #001f24;
+    --md-sys-color-surface: #fbfdfd;
+    --md-sys-color-on-surface: #191c1d;
+    --md-sys-color-surface-container: #eff1f1;
+    --md-sys-color-surface-container-high: #e9ecec;
+    --md-sys-color-outline: #6f797a;
+    
+    --md-sys-typescale-display-large-font: system-ui, -apple-system, sans-serif;
+    --md-sys-typescale-display-large-size: 57px;
+    --md-sys-typescale-title-large-size: 22px;
+    --md-sys-typescale-title-medium-size: 16px;
+    --md-sys-typescale-body-large-size: 16px;
+    --md-sys-typescale-label-large-size: 14px;
+    --md-sys-shape-corner-extra-large: 28px;
+    --md-sys-shape-corner-full: 9999px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100dvh; /* NEW */
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-sys-typescale-display-large-font);
+    overflow: hidden; /* NEW: locks everything, we rely entirely on internal scrolling now */
+}
+
+.display-large { font-size: var(--md-sys-typescale-display-large-size); font-weight: 700; line-height: 64px; margin: 0; }
+.title-large { font-size: var(--md-sys-typescale-title-large-size); font-weight: 500; margin: 0; }
+.title-medium { font-size: var(--md-sys-typescale-title-medium-size); font-weight: 500; margin: 0; }
+.body-large { font-size: var(--md-sys-typescale-body-large-size); }
+.label-large { font-size: var(--md-sys-typescale-label-large-size); font-weight: 500; text-transform: uppercase; color: var(--md-sys-color-outline); }

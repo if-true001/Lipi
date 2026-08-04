@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lipi</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+
+    <div id="drawer-overlay" class="scrim hidden"></div>
+
+    <aside id="sidebar" class="md-drawer">
+        <div class="drawer-header">
+            <h2 class="title-large">Lipi</h2>
+        </div>
+        
+        <div class="drawer-content">
+            <span class="label-large section-label">Open Editors</span>
+            <ul id="open-files-list" class="drawer-list">
+                <li class="drawer-item active" id="welcome-sidebar-item">
+                    <div class="file-info">
+                        <span class="material-symbols-rounded icon">waving_hand</span>
+                        <span class="file-name">Lipi</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="drawer-footer">
+            <button class="drawer-item" id="settings-btn">
+                <span class="material-symbols-rounded icon">settings</span>
+                <span class="file-name">Settings</span>
+            </button>
+        </div>
+    </aside>
+
+    <main id="workspace">
+        <header class="top-app-bar">
+            <div class="top-bar-left">
+                <button class="icon-btn" id="menu-btn" aria-label="Open menu">
+                    <span class="material-symbols-rounded">menu</span>
+                </button>
+                <span id="current-file-name" class="title-medium">Lipi</span>
+            </div>
+            
+            <div class="top-bar-right">
+                <div class="dropdown-anchor">
+                    <button class="icon-btn" id="add-btn" aria-label="Add new or open">
+                        <span class="material-symbols-rounded">add</span>
+                    </button>
+                    
+                    <div id="add-dropdown" class="m3-menu hidden">
+                        <button class="menu-item" id="dropdown-new-file">
+                            <span class="material-symbols-rounded">note_add</span> New File
+                        </button>
+                        <button class="menu-item" id="dropdown-open-file">
+                            <span class="material-symbols-rounded">folder_open</span> Open File...
+                        </button>
+                        <div class="menu-divider"></div>
+                        <span class="menu-label">Recent</span>
+                        <div id="dropdown-recent-list">
+                            <button class="menu-item disabled">No recent files</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="icon-btn" id="save-btn" aria-label="Save file" disabled>
+                    <span class="material-symbols-rounded">save</span>
+                </button>
+            </div>
+        </header>
+
+        <div id="welcome-view" class="editor-canvas active">
+            <div class="welcome-content">
+                <div class="action-columns">
+                    <div class="action-group">
+                        <span class="label-large">Start</span>
+                        <button class="text-btn" id="action-new-file">
+                            <span class="material-symbols-rounded">add</span> New File
+                        </button>
+                        <button class="text-btn" id="action-open-file">
+                            <span class="material-symbols-rounded">folder_open</span> Open File...
+                        </button>
+                    </div>
+                    <div class="action-group">
+                        <span class="label-large">Recent</span>
+                        <div id="recent-files-container" class="recent-list">
+                            <span class="empty-state">No recent files</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="editor-view" class="editor-canvas hidden">
+            <textarea id="main-editor" class="body-large" spellcheck="false" placeholder="Start typing..."></textarea>
+        </div>
+    </main>
+
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>
