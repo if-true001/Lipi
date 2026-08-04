@@ -10,10 +10,10 @@ class LipiApp {
         this.isDrawerOpen = false;
         this.isDropdownOpen = false;
         this.currentView = 'welcome';
-        this.fileCounter = 1;
+        this.fileCounter = 0; // Starts at 0 for strict "Untitled" first
         
         // Data State
-        this.openFiles = []; // Array to store { id, name, content }
+        this.openFiles = [];
         this.activeFileId = null; 
     }
 
@@ -58,7 +58,6 @@ class LipiApp {
         });
 
         this.elements.saveBtn.addEventListener('click', () => this.saveCurrentFile());
-
         this.elements.welcomeSidebarItem.addEventListener('click', () => this.activateWelcomeScreen());
 
         const handleNewFile = () => {
@@ -111,7 +110,9 @@ class LipiApp {
 
     createNewFile() {
         const fileId = `file-${Date.now()}`;
-        const fileName = `Untitled-${this.fileCounter}.txt`;
+        
+        // Dynamic Naming Logic
+        const fileName = this.fileCounter === 0 ? 'Untitled.txt' : `Untitled-${this.fileCounter}.txt`;
         this.fileCounter++;
 
         this.openFiles.push({ id: fileId, name: fileName, content: '' });
@@ -126,7 +127,11 @@ class LipiApp {
         const file = this.openFiles.find(f => f.id === fileId);
 
         this.switchView('editor');
+        
+        // Update Title & Remove Brand Styling for normal files
         this.elements.fileNameDisplay.textContent = file.name;
+        this.elements.fileNameDisplay.classList.remove('brand-font');
+        
         this.elements.saveBtn.disabled = false;
         this.elements.mainEditor.value = file.content;
         this.elements.mainEditor.focus();
@@ -165,7 +170,11 @@ class LipiApp {
     activateWelcomeScreen() {
         this.activeFileId = null;
         this.switchView('welcome');
+        
+        // Restore "Lipi" text and Brand Styling
         this.elements.fileNameDisplay.textContent = 'Lipi';
+        this.elements.fileNameDisplay.classList.add('brand-font');
+        
         this.elements.saveBtn.disabled = true;
         this.updateSidebar();
         this.toggleDrawer(false);

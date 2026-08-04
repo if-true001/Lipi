@@ -4,9 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lipi</title>
+    <!-- Standard Fonts & Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    
+    <!-- Lipi Brand Font: Supermercado One -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Supermercado+One&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
 
@@ -14,7 +21,8 @@
 
     <aside id="sidebar" class="md-drawer">
         <div class="drawer-header">
-            <h2 class="title-large">Lipi</h2>
+            <!-- Brand Font Applied -->
+            <h2 class="title-large brand-font" style="font-size: 32px;">Lipi</h2>
         </div>
         
         <div class="drawer-content">
@@ -23,7 +31,8 @@
                 <li class="drawer-item active" id="welcome-sidebar-item">
                     <div class="file-info">
                         <span class="material-symbols-rounded icon">waving_hand</span>
-                        <span class="file-name">Lipi</span>
+                        <!-- Brand Font Applied -->
+                        <span class="file-name brand-font" style="font-size: 18px;">Lipi</span>
                     </div>
                 </li>
             </ul>
@@ -43,7 +52,8 @@
                 <button class="icon-btn" id="menu-btn" aria-label="Open menu">
                     <span class="material-symbols-rounded">menu</span>
                 </button>
-                <span id="current-file-name" class="title-medium">Lipi</span>
+                <!-- Brand Font Applied (JS will remove this when a normal file opens) -->
+                <span id="current-file-name" class="title-medium brand-font" style="font-size: 22px;">Lipi</span>
             </div>
             
             <div class="top-bar-right">
@@ -75,6 +85,9 @@
 
         <div id="welcome-view" class="editor-canvas active">
             <div class="welcome-content">
+                <!-- NEW: Eye-Catchy Brand Header -->
+                <h1 class="brand-font brand-hero">Lipi</h1>
+                
                 <div class="action-columns">
                     <div class="action-group">
                         <span class="label-large">Start</span>
