@@ -13,39 +13,22 @@ body { display: flex; }
     padding: 8px 12px; background-color: var(--md-sys-color-surface);
     border-bottom: 1px solid var(--md-sys-color-surface-container-high);
     min-height: 56px; flex-shrink: 0; z-index: 10; gap: 16px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.top-bar-left { 
-    display: flex; align-items: center; gap: 8px; 
-    flex: 1; min-width: 0;
-}
-
-.top-bar-right { 
-    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
-}
-
-#current-file-name {
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
-}
-
-#current-file-name.editable {
-    cursor: text; padding: 4px 8px; border-radius: 4px;
-    outline: none; transition: background-color 0.2s;
-}
-
-#current-file-name.editable:hover, #current-file-name.editable:focus {
-    background-color: var(--md-sys-color-surface-container-high);
-}
+.top-bar-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.top-bar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+#current-file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+#current-file-name.editable { cursor: text; padding: 4px 8px; border-radius: 4px; outline: none; transition: background-color 0.2s; }
+#current-file-name.editable:hover, #current-file-name.editable:focus { background-color: var(--md-sys-color-surface-container-high); }
 
 .icon-btn {
     background: transparent; border: none; color: var(--md-sys-color-on-surface);
     cursor: pointer; border-radius: var(--md-sys-shape-corner-full);
     width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, color 0.3s ease;
 }
-
 .dropdown-btn { width: auto; padding: 0 8px 0 16px; gap: 2px; }
-
 .icon-btn:hover { background-color: var(--md-sys-color-surface-container-high); }
 .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
@@ -57,29 +40,24 @@ body { display: flex; }
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     min-width: 220px; padding: 12px 0; z-index: 200;
     display: flex; flex-direction: column; opacity: 1;
-    transition: opacity 0.2s ease, transform 0.2s ease; transform-origin: top right;
+    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease; transform-origin: top right;
 }
 .m3-menu.hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
-
-/* NEW: Custom Right-Click Context Menu */
 .custom-context-menu {
-    position: fixed;
-    background-color: var(--md-sys-color-surface-container);
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    position: fixed; background-color: var(--md-sys-color-surface-container);
+    border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
     min-width: 180px; padding: 8px 0; z-index: 9999;
     display: flex; flex-direction: column; opacity: 0;
     pointer-events: none; transform: scale(0.95);
-    transform-origin: top left; transition: opacity 0.1s ease, transform 0.1s ease;
+    transform-origin: top left; transition: opacity 0.1s ease, transform 0.1s ease, background-color 0.3s ease;
 }
-.custom-context-menu.active {
-    opacity: 1; pointer-events: all; transform: scale(1);
-}
+.custom-context-menu.active { opacity: 1; pointer-events: all; transform: scale(1); }
 
 .menu-item {
     display: flex; align-items: center; gap: 16px; padding: 12px 24px;
     background: transparent; border: none; width: 100%; text-align: left;
     color: var(--md-sys-color-on-surface); font-family: inherit; font-size: var(--md-sys-typescale-body-large-size); cursor: pointer;
+    transition: color 0.3s ease, background-color 0.2s ease;
 }
 .menu-item:hover { background-color: var(--md-sys-color-surface-container-high); }
 .menu-item.disabled { opacity: 0.5; cursor: default; }
@@ -92,12 +70,12 @@ body { display: flex; }
 .md-drawer {
     position: fixed; top: 0; left: -300px; width: 300px; height: 100dvh;
     background-color: var(--md-sys-color-surface-container); z-index: 100; display: flex; flex-direction: column;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
 }
 .md-drawer.open { left: 0; }
 .drawer-header { padding: 24px 28px; flex-shrink: 0; }
 .drawer-content { flex-grow: 1; overflow-y: auto; }
-.section-label { padding: 0 28px; margin-bottom: 8px; display: block; }
+.section-label { padding: 0 28px; margin-bottom: 8px; display: block; transition: color 0.3s ease; }
 .drawer-list { list-style: none; padding: 0 12px; margin: 0; }
 
 .drawer-item {
@@ -106,21 +84,24 @@ body { display: flex; }
     border-radius: var(--md-sys-shape-corner-full);
     cursor: pointer; background: transparent; border: none;
     width: 100%; text-align: left; color: var(--md-sys-color-on-surface); font-family: inherit;
+    transition: color 0.3s ease, background-color 0.2s ease;
 }
 .drawer-item:hover { background-color: rgba(0,0,0,0.05); }
 .drawer-item.active { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+[data-theme="dark"] .drawer-item:hover { background-color: rgba(255,255,255,0.05); }
 
 .file-info { display: flex; align-items: center; gap: 12px; overflow: hidden; pointer-events: none; }
 .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
-
 .close-btn {
     background: transparent; border: none; color: inherit; cursor: pointer;
     opacity: 0.5; padding: 4px; display: flex; border-radius: 50%; align-items: center; justify-content: center;
 }
 .close-btn:hover { opacity: 1; background-color: rgba(0,0,0,0.1); }
+[data-theme="dark"] .close-btn:hover { background-color: rgba(255,255,255,0.1); }
 .close-btn .material-symbols-rounded { font-size: 18px; pointer-events: none; }
 
 .drawer-footer { padding: 12px; border-top: 1px solid rgba(0,0,0,0.05); flex-shrink: 0; }
+[data-theme="dark"] .drawer-footer { border-top-color: rgba(255,255,255,0.05); }
 
 /* =========================================
    Overlays & Modals (M3 Style)
@@ -139,15 +120,11 @@ body { display: flex; }
     padding: 24px; width: 90%; max-width: 400px; z-index: 300;
     display: flex; flex-direction: column; gap: 24px;
     opacity: 0; pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease;
     box-shadow: 0 10px 32px rgba(0,0,0,0.2);
 }
-
-.m3-dialog.active {
-    opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1);
-}
-
-.m3-dialog h3 { margin: 0; color: var(--md-sys-color-on-surface); }
+.m3-dialog.active { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
+.m3-dialog h3 { margin: 0; color: var(--md-sys-color-on-surface); transition: color 0.3s ease; }
 
 .m3-text-input {
     width: 100%; padding: 12px 16px; border-radius: 8px;
@@ -155,34 +132,30 @@ body { display: flex; }
     background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface); font-family: inherit;
     font-size: var(--md-sys-typescale-body-large-size); outline: none; box-sizing: border-box;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.2s;
 }
+.m3-text-input:focus { border-color: var(--md-sys-color-primary); border-width: 2px; padding: 11px 15px; }
 
-.m3-text-input:focus {
-    border-color: var(--md-sys-color-primary); border-width: 2px;
-    padding: 11px 15px; 
-}
-
-.dialog-actions { 
-    display: flex; justify-content: space-between; gap: 8px; margin-top: 8px;
-}
-
+.dialog-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .m3-btn {
     display: inline-flex; align-items: center; justify-content: center;
     height: 40px; padding: 0 24px; border-radius: 20px; font-family: inherit;
     font-size: var(--md-sys-typescale-label-large-size); font-weight: 500;
-    border: none; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s;
+    border: none; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s, color 0.3s ease;
 }
-
 .m3-btn-text { background: transparent; color: var(--md-sys-color-primary); }
 .m3-btn-text:hover { background-color: rgba(0, 104, 116, 0.08); }
+[data-theme="dark"] .m3-btn-text:hover { background-color: rgba(79, 216, 235, 0.08); }
+
 .m3-btn-filled { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
 .m3-btn-filled:hover { background-color: #005a64; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+[data-theme="dark"] .m3-btn-filled:hover { background-color: #3bbbcc; }
+
 .m3-btn-danger { color: #ba1a1a !important; }
 .m3-btn-danger:hover { background-color: rgba(186, 26, 26, 0.08); }
+[data-theme="dark"] .m3-btn-danger { color: #ffb4ab !important; }
+[data-theme="dark"] .m3-btn-danger:hover { background-color: rgba(255, 180, 171, 0.08); }
 
-/* =========================================
-   Desktop Layout Overrides (> 900px)
-========================================= */
 @media (min-width: 900px) {
     #menu-btn { display: none; }
     .md-drawer { position: relative; left: 0; z-index: 1; border-right: 1px solid var(--md-sys-color-surface-container-high); }
@@ -190,25 +163,66 @@ body { display: flex; }
 }
 
 /* =========================================
-   Welcome & Editor Canvas
+   Workspaces
 ========================================= */
 .editor-canvas { display: none; flex-grow: 1; height: 100%; min-height: 0; }
 .editor-canvas.active { display: flex; flex-direction: column; }
-#welcome-view { overflow-y: auto; }
+#welcome-view, #settings-view { overflow-y: auto; }
 #editor-view { overflow: hidden; }
+
 .welcome-content { margin: auto; padding: 24px; max-width: 800px; width: 100%; }
 .action-columns { display: flex; flex-direction: column; gap: 48px; }
 .action-group { display: flex; flex-direction: column; gap: 12px; }
-.text-btn { display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--md-sys-color-primary); font-family: inherit; cursor: pointer; padding: 8px 0; width: fit-content; }
+.text-btn { display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--md-sys-color-primary); font-family: inherit; cursor: pointer; padding: 8px 0; width: fit-content; transition: color 0.3s ease; }
 @media (min-width: 600px) { .action-columns { flex-direction: row; gap: 80px; } }
 
 #main-editor {
     flex-grow: 1; height: 100%; width: 100%; border: none; resize: none; outline: none; padding: 24px;
-    font-family: 'Courier New', Courier, monospace; background: transparent; color: var(--md-sys-color-on-surface); overflow-y: auto; box-sizing: border-box;
+    font-family: 'Courier New', Courier, monospace; background: transparent; color: var(--md-sys-color-on-surface); overflow-y: auto; box-sizing: border-box; transition: color 0.3s ease;
 }
-
 .recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 320px; }
 .dropdown-recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; padding-right: 8px; }
 .dropdown-recent-item-wrapper .menu-item { flex-grow: 1; width: auto; padding-right: 8px; }
-.remove-recent-btn { width: 32px; height: 32px; opacity: 0.4; }
+.remove-recent-btn { width: 32px; height: 32px; opacity: 0.4; transition: opacity 0.2s, background-color 0.2s; }
 .remove-recent-btn:hover { opacity: 1; background-color: var(--md-sys-color-surface-container-high); }
+
+/* NEW: Settings View Styles */
+.settings-content {
+    padding: 32px 24px;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--md-sys-color-surface-container-high);
+}
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.m3-select {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--md-sys-color-outline);
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    font-family: inherit;
+    font-size: var(--md-sys-typescale-body-large-size);
+    outline: none;
+    cursor: pointer;
+    min-width: 180px;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.2s;
+}
+.m3-select:focus {
+    border-color: var(--md-sys-color-primary);
+    border-width: 2px;
+    padding: 11px 15px; 
+}

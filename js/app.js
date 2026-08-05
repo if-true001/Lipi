@@ -5,6 +5,7 @@ class LipiApp {
     constructor() {
         this.supportsFileSystemAPI = 'showOpenFilePicker' in window;
         this.initDOM();
+        this.initTheme(); // NEW: Load theme preference
         this.handleFeatureSupportUI();
         this.bindEvents();
         
@@ -18,8 +19,6 @@ class LipiApp {
         this.activeFileId = null; 
         this.db = null; 
         this.fileToClose = null; 
-        
-        // Context Menu State
         this.contextMenuTargetId = null;
 
         if (this.supportsFileSystemAPI) {
@@ -47,7 +46,6 @@ class LipiApp {
             iconActionSaveAs: document.getElementById('icon-action-save-as'),
             
             modalOverlay: document.getElementById('modal-overlay'),
-            
             saveAsModal: document.getElementById('save-as-modal'),
             saveAsInput: document.getElementById('save-as-input'),
             modalCancelBtn: document.getElementById('modal-cancel-btn'),
@@ -59,7 +57,6 @@ class LipiApp {
             modalUnsavedDiscardBtn: document.getElementById('modal-unsaved-discard-btn'),
             modalUnsavedSaveBtn: document.getElementById('modal-unsaved-save-btn'),
             
-            // NEW: Context Menu Elements
             contextMenu: document.getElementById('file-context-menu'),
             ctxOpen: document.getElementById('ctx-open'),
             ctxRename: document.getElementById('ctx-rename'),
@@ -69,8 +66,13 @@ class LipiApp {
             overlay: document.getElementById('drawer-overlay'),
             openFilesList: document.getElementById('open-files-list'),
             welcomeSidebarItem: document.getElementById('welcome-sidebar-item'),
+            settingsBtn: document.getElementById('settings-btn'), // NEW
+            
             welcomeView: document.getElementById('welcome-view'),
             editorView: document.getElementById('editor-view'),
+            settingsView: document.getElementById('settings-view'), // NEW
+            themeSelect: document.getElementById('theme-select'), // NEW
+            
             mainEditor: document.getElementById('main-editor'),
             btnNewFile: document.getElementById('action-new-file'),
             btnOpenFile: document.getElementById('action-open-file'),
@@ -81,6 +83,24 @@ class LipiApp {
             dropdownRecentList: document.getElementById('dropdown-recent-list')
         };
     }
+
+    // --- Theme Management ---
+    initTheme() {
+        const savedTheme = localStorage.getItem('lipi-theme') || 'system';
+        this.elements.themeSelect.value = savedTheme;
+        this.applyTheme(savedTheme);
+    }
+
+    applyTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else if (theme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    }
+    // ------------------------
 
     handleFeatureSupportUI() {
         if (!this.supportsFileSystemAPI) {
@@ -94,16 +114,22 @@ class LipiApp {
     }
 
     bindEvents() {
-        // --- NEW: Global Right-Click Management ---
+        // Theme Listener
+        this.elements.themeSelect.addEventListener('change', (e) => {
+            const newTheme = e.target.value;
+            localStorage.setItem('lipi-theme', newTheme);
+            this.applyTheme(newTheme);
+        });
+
+        // Open Settings
+        this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
+
+        // Context Menu Management
         document.addEventListener('contextmenu', (e) => {
-            // Allow native menu in text editor and inputs
-            if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]')) {
+            if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]') || e.target.closest('select')) {
                 return;
             }
-
-            e.preventDefault(); // Block native menu everywhere else
-
-            // Check if right-clicked on a sidebar file
+            e.preventDefault(); 
             const drawerItem = e.target.closest('.drawer-item:not(#welcome-sidebar-item):not(#settings-btn)');
             if (drawerItem) {
                 const fileId = drawerItem.dataset.id;
@@ -113,19 +139,12 @@ class LipiApp {
             }
         });
 
-        // Hide context menu on normal click
         document.addEventListener('click', (e) => {
             this.hideContextMenu();
-            
-            if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) {
-                this.toggleAddDropdown(false);
-            }
-            if (this.isSaveDropdownOpen && !this.elements.saveDropdown.contains(e.target)) {
-                this.toggleSaveDropdown(false);
-            }
+            if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) this.toggleAddDropdown(false);
+            if (this.isSaveDropdownOpen && !this.elements.saveDropdown.contains(e.target)) this.toggleSaveDropdown(false);
         });
 
-        // Context Menu Actions
         this.elements.ctxOpen.addEventListener('click', () => {
             if (this.contextMenuTargetId) this.switchToEditor(this.contextMenuTargetId);
             this.hideContextMenu();
@@ -135,7 +154,6 @@ class LipiApp {
         this.elements.ctxRename.addEventListener('click', () => {
             if (this.contextMenuTargetId) {
                 this.switchToEditor(this.contextMenuTargetId);
-                // Simulate a click on the title to edit
                 setTimeout(() => this.elements.fileNameDisplay.focus(), 50);
             }
             this.hideContextMenu();
@@ -146,7 +164,6 @@ class LipiApp {
             if (this.contextMenuTargetId) this.closeFile(this.contextMenuTargetId);
             this.hideContextMenu();
         });
-        // ------------------------------------------
 
         this.elements.menuBtn.addEventListener('click', () => this.toggleDrawer(true));
         this.elements.overlay.addEventListener('click', () => this.toggleDrawer(false));
@@ -242,14 +259,10 @@ class LipiApp {
         });
     }
 
-    // --- Custom Context Menu Logic ---
     showContextMenu(x, y, fileId) {
         this.contextMenuTargetId = fileId;
-        
-        // Prevent menu from going off-screen
         const menuWidth = 180; 
         const menuHeight = 150;
-        
         let adjustedX = x;
         let adjustedY = y;
         
@@ -265,7 +278,6 @@ class LipiApp {
         this.contextMenuTargetId = null;
         this.elements.contextMenu.classList.remove('active');
     }
-    // ---------------------------------
 
     async initDB() {
         return new Promise((resolve, reject) => {
@@ -503,16 +515,44 @@ class LipiApp {
         }
     }
 
+    // --- NEW: SPA Router for Settings ---
     switchView(viewName) {
         this.currentView = viewName;
+        
+        // Hide all views securely
+        this.elements.welcomeView.classList.replace('active', 'hidden') || this.elements.welcomeView.classList.add('hidden');
+        this.elements.editorView.classList.replace('active', 'hidden') || this.elements.editorView.classList.add('hidden');
+        this.elements.settingsView.classList.replace('active', 'hidden') || this.elements.settingsView.classList.add('hidden');
+        
         if (viewName === 'editor') {
-            this.elements.welcomeView.classList.replace('active', 'hidden');
             this.elements.editorView.classList.replace('hidden', 'active');
+        } else if (viewName === 'settings') {
+            this.elements.settingsView.classList.replace('hidden', 'active');
         } else {
-            this.elements.editorView.classList.replace('active', 'hidden');
             this.elements.welcomeView.classList.replace('hidden', 'active');
         }
     }
+
+    openSettings() {
+        this.switchView('settings');
+        
+        this.elements.fileNameDisplay.textContent = 'Settings';
+        this.elements.fileNameDisplay.classList.remove('brand-font', 'editable');
+        this.elements.fileNameDisplay.contentEditable = "false";
+        
+        this.elements.unsavedIndicator.style.display = 'none';
+        this.elements.saveBtn.disabled = true; 
+        
+        // Manage Sidebar states
+        Array.from(this.elements.openFilesList.children).forEach(li => li.classList.remove('active'));
+        this.elements.welcomeSidebarItem.classList.remove('active');
+        this.elements.settingsBtn.classList.add('active');
+        
+        this.toggleAddDropdown(false);
+        this.toggleSaveDropdown(false);
+        this.toggleDrawer(false);
+    }
+    // ------------------------------------
 
     updateUnsavedUI() {
         if (!this.activeFileId) {
@@ -609,6 +649,9 @@ class LipiApp {
         this.elements.fileNameDisplay.classList.remove('brand-font');
         this.elements.fileNameDisplay.classList.add('editable');
         this.elements.fileNameDisplay.contentEditable = "true";
+        
+        // Remove Settings Active State
+        this.elements.settingsBtn.classList.remove('active');
         
         this.elements.mainEditor.value = file.content;
         this.updateUnsavedUI(); 
@@ -730,6 +773,9 @@ class LipiApp {
         this.elements.fileNameDisplay.classList.remove('editable');
         this.elements.fileNameDisplay.contentEditable = "false";
         
+        // Remove Settings Active State
+        this.elements.settingsBtn.classList.remove('active');
+        
         this.elements.unsavedIndicator.style.display = 'none';
         this.elements.saveBtn.disabled = true; 
         this.updateSidebar();
@@ -748,14 +794,14 @@ class LipiApp {
             this.elements.welcomeSidebarItem.style.display = 'none';
         } else {
             this.elements.welcomeSidebarItem.style.display = 'flex';
-            this.elements.welcomeSidebarItem.classList.add('active');
+            if (this.currentView === 'welcome') {
+                this.elements.welcomeSidebarItem.classList.add('active');
+            }
         }
 
         this.openFiles.forEach(file => {
             const li = document.createElement('li');
             li.className = `drawer-item ${file.id === this.activeFileId ? 'active' : ''}`;
-            
-            // NEW: Added data-id for Context Menu tracking
             li.dataset.id = file.id;
             
             const unsavedDot = file.isUnsaved ? `<span style="color: var(--md-sys-color-primary); font-size: 14px;">●</span>` : '';

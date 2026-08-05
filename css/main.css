@@ -1,4 +1,5 @@
 :root {
+    /* Light Mode Variables (Default) */
     --md-sys-color-primary: #006874; 
     --md-sys-color-on-primary: #ffffff;
     --md-sys-color-primary-container: #97f0ff;
@@ -30,14 +31,12 @@ html, body {
     color: var(--md-sys-color-on-surface);
     font-family: var(--md-sys-typescale-display-large-font);
     overflow: hidden;
-    
-    /* NEW: Prevent accidental highlighting of the UI */
     user-select: none;
     -webkit-user-select: none; 
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth Theme Transitions */
 }
 
-/* NEW: Restore highlighting for inputs and the editor */
-textarea, input, [contenteditable="true"] {
+textarea, input, select, [contenteditable="true"] {
     user-select: text;
     -webkit-user-select: text;
 }
@@ -58,4 +57,35 @@ textarea, input, [contenteditable="true"] {
     line-height: 1.1;
     margin: 0 0 40px 0;
     color: var(--md-sys-color-primary);
+}
+
+/* =========================================
+   Dark Mode Overrides
+========================================= */
+/* Applies when manually set via JS */
+[data-theme="dark"] {
+    --md-sys-color-primary: #4fd8eb;
+    --md-sys-color-on-primary: #00363d;
+    --md-sys-color-primary-container: #004f58;
+    --md-sys-color-on-primary-container: #97f0ff;
+    --md-sys-color-surface: #191c1d;
+    --md-sys-color-on-surface: #e1e3e3;
+    --md-sys-color-surface-container: #2b2e2f;
+    --md-sys-color-surface-container-high: #323536;
+    --md-sys-color-outline: #899394;
+}
+
+/* Applies when OS is dark AND user selected "System Default" (no data-theme) */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --md-sys-color-primary: #4fd8eb;
+        --md-sys-color-on-primary: #00363d;
+        --md-sys-color-primary-container: #004f58;
+        --md-sys-color-on-primary-container: #97f0ff;
+        --md-sys-color-surface: #191c1d;
+        --md-sys-color-on-surface: #e1e3e3;
+        --md-sys-color-surface-container: #2b2e2f;
+        --md-sys-color-surface-container-high: #323536;
+        --md-sys-color-outline: #899394;
+    }
 }
