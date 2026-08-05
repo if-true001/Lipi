@@ -3,7 +3,11 @@
  */
 class LipiApp {
     constructor() {
+        // Feature Detection: Does the browser support the File System Access API?
+        this.supportsFileSystemAPI = 'showOpenFilePicker' in window;
+        
         this.initDOM();
+        this.handleFeatureSupportUI();
         this.bindEvents();
         
         // App State
@@ -17,8 +21,10 @@ class LipiApp {
         this.activeFileId = null; 
         this.db = null; 
 
-        // Initialize Database and Load Recents
-        this.initDB().then(() => this.renderRecentFiles());
+        // Only initialize DB and Recents if supported
+        if (this.supportsFileSystemAPI) {
+            this.initDB().then(() => this.renderRecentFiles());
+        }
     }
 
     initDOM() {
@@ -28,26 +34,36 @@ class LipiApp {
             saveBtn: document.getElementById('save-btn'),
             addBtn: document.getElementById('add-btn'),
             addDropdown: document.getElementById('add-dropdown'),
-            
             dropdownNewFile: document.getElementById('dropdown-new-file'),
             dropdownOpenFile: document.getElementById('dropdown-open-file'),
-            
             sidebar: document.getElementById('sidebar'),
             overlay: document.getElementById('drawer-overlay'),
             openFilesList: document.getElementById('open-files-list'),
             welcomeSidebarItem: document.getElementById('welcome-sidebar-item'),
-            
             welcomeView: document.getElementById('welcome-view'),
             editorView: document.getElementById('editor-view'),
             mainEditor: document.getElementById('main-editor'),
-            
             btnNewFile: document.getElementById('action-new-file'),
             btnOpenFile: document.getElementById('action-open-file'),
-            
             fallbackFileInput: document.getElementById('fallback-file-input'),
+            
+            // Recent UI elements to potentially hide
+            welcomeRecentGroup: document.getElementById('welcome-recent-group'),
+            dropdownRecentGroup: document.getElementById('dropdown-recent-group'),
             recentContainer: document.getElementById('recent-files-container'),
             dropdownRecentList: document.getElementById('dropdown-recent-list')
         };
+    }
+
+    /**
+     * Hides parts of the UI that require the File System Access API
+     */
+    handleFeatureSupportUI() {
+        if (!this.supportsFileSystemAPI) {
+            if (this.elements.welcomeRecentGroup) this.elements.welcomeRecentGroup.remove();
+            if (this.elements.dropdownRecentGroup) this.elements.dropdownRecentGroup.remove();
+            console.log("Lipi: Running in fallback mode (No File System API support).");
+        }
     }
 
     bindEvents() {
@@ -80,11 +96,9 @@ class LipiApp {
 
         this.elements.btnNewFile.addEventListener('click', handleNewFile);
         this.elements.dropdownNewFile.addEventListener('click', handleNewFile);
-        
         this.elements.btnOpenFile.addEventListener('click', handleOpenFile);
         this.elements.dropdownOpenFile.addEventListener('click', handleOpenFile);
         
-        // Fallback File Reader Logic
         this.elements.fallbackFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -93,7 +107,7 @@ class LipiApp {
                 this.loadFileIntoEditor(file.name, event.target.result, null);
             };
             reader.readAsText(file);
-            e.target.value = ''; // Reset input
+            e.target.value = '';
         });
 
         this.elements.mainEditor.addEventListener('input', (e) => {
@@ -104,7 +118,7 @@ class LipiApp {
         });
     }
 
-    // --- IndexedDB for Recent Files ---
+    // --- IndexedDB ---
 
     async initDB() {
         return new Promise((resolve, reject) => {
@@ -124,19 +138,21 @@ class LipiApp {
     }
 
     async saveToRecent(name, handle) {
-        if (!this.db || !handle) return; 
+        if (!this.db || !handle || !this.supportsFileSystemAPI) return; 
         const tx = this.db.transaction('recents', 'readwrite');
         tx.objectStore('recents').put({ name, handle, timestamp: Date.now() });
         this.renderRecentFiles();
     }
 
     async renderRecentFiles() {
-        if (!this.db) return;
+        if (!this.db || !this.supportsFileSystemAPI) return;
         const recents = await new Promise(resolve => {
             const tx = this.db.transaction('recents', 'readonly');
             const req = tx.objectStore('recents').getAll();
             req.onsuccess = () => resolve(req.result.sort((a,b) => b.timestamp - a.timestamp));
         });
+
+        if (!this.elements.recentContainer) return;
 
         this.elements.recentContainer.innerHTML = '';
         this.elements.dropdownRecentList.innerHTML = '';
@@ -165,7 +181,7 @@ class LipiApp {
         });
     }
 
-    // --- UI Toggles ---
+    // --- View Logic ---
 
     toggleDrawer(open) {
         if (window.innerWidth >= 900) return;
@@ -199,7 +215,7 @@ class LipiApp {
         }
     }
 
-    // --- Core File Management Logic ---
+    // --- File Ops ---
 
     createNewFile() {
         const fileName = this.fileCounter === 0 ? 'Untitled.txt' : `Untitled-${this.fileCounter}.txt`;
@@ -208,18 +224,17 @@ class LipiApp {
     }
 
     async openFile() {
-        if (window.showOpenFilePicker) {
+        if (this.supportsFileSystemAPI) {
             try {
                 const [fileHandle] = await window.showOpenFilePicker({
                     types: [{ description: 'Text Files', accept: {'text/*': ['.txt', '.md', '.html', '.css', '.js', '.json']} }]
                 });
                 const file = await fileHandle.getFile();
                 const content = await file.text();
-                
                 this.loadFileIntoEditor(file.name, content, fileHandle);
                 this.saveToRecent(file.name, fileHandle);
             } catch (e) {
-                console.log('File picker cancelled or failed:', e);
+                console.log('Picker cancelled');
             }
         } else {
             this.elements.fallbackFileInput.click();
@@ -229,28 +244,23 @@ class LipiApp {
     async openRecentFile(recentData) {
         try {
             const handle = recentData.handle;
-            
             const perm = await handle.queryPermission({ mode: 'readwrite' });
             if (perm !== 'granted') {
                 const req = await handle.requestPermission({ mode: 'readwrite' });
-                if (req !== 'granted') throw new Error('Permission denied by user');
+                if (req !== 'granted') throw new Error('Permission denied');
             }
-            
             const file = await handle.getFile();
             const content = await file.text();
-            
             this.loadFileIntoEditor(file.name, content, handle);
             this.saveToRecent(file.name, handle);
         } catch (e) {
-            console.error('Failed to open recent file:', e);
-            alert("Could not open file. It may have been moved, deleted, or permissions were denied.");
+            alert("Could not open recent file.");
         }
     }
 
     loadFileIntoEditor(fileName, content, fileHandle) {
         const fileId = `file-${Date.now()}`;
         this.openFiles.push({ id: fileId, name: fileName, content: content, handle: fileHandle });
-        
         this.switchToEditor(fileId);
         this.updateSidebar();
         this.toggleDrawer(false);
@@ -259,11 +269,9 @@ class LipiApp {
     switchToEditor(fileId) {
         this.activeFileId = fileId;
         const file = this.openFiles.find(f => f.id === fileId);
-
         this.switchView('editor');
         this.elements.fileNameDisplay.textContent = file.name;
         this.elements.fileNameDisplay.classList.remove('brand-font');
-        
         this.elements.saveBtn.disabled = false;
         this.elements.mainEditor.value = file.content;
         this.elements.mainEditor.focus();
@@ -275,8 +283,7 @@ class LipiApp {
             this.openFiles.splice(index, 1);
             if (this.activeFileId === fileId) {
                 if (this.openFiles.length > 0) {
-                    const nextIndex = Math.max(0, index - 1);
-                    this.switchToEditor(this.openFiles[nextIndex].id);
+                    this.switchToEditor(this.openFiles[Math.max(0, index - 1)].id);
                 } else {
                     this.activateWelcomeScreen();
                 }
@@ -289,43 +296,27 @@ class LipiApp {
         if (!this.activeFileId) return;
         const file = this.openFiles.find(f => f.id === this.activeFileId);
         
-        if (window.showSaveFilePicker) {
+        if (this.supportsFileSystemAPI) {
             try {
                 let handle = file.handle;
-
-                // If file has no handle (it is a newly created "Untitled.txt"), ask where to save it
                 if (!handle) {
                     handle = await window.showSaveFilePicker({
                         suggestedName: file.name,
                         types: [{ description: 'Text Files', accept: {'text/plain': ['.txt', '.md', '.html', '.css', '.js', '.json']} }]
                     });
-
-                    // Update the state with the new OS-granted handle and name
                     file.handle = handle;
                     file.name = handle.name;
-                    
-                    // Update UI and database to reflect the new saved name
                     this.elements.fileNameDisplay.textContent = file.name;
                     this.saveToRecent(file.name, handle);
                     this.updateSidebar();
                 }
-
-                // Write the text to the hard drive
                 const writable = await handle.createWritable();
                 await writable.write(file.content);
                 await writable.close();
-                console.log('File successfully saved to disk!');
-
             } catch (e) {
-                // If user hits "Cancel" on the save dialog, do nothing. 
-                // If it's a different error, trigger the fallback download.
-                if (e.name !== 'AbortError') {
-                    console.error('Save failed, falling back to download:', e);
-                    this.fallbackSaveDownload(file);
-                }
+                if (e.name !== 'AbortError') this.fallbackSaveDownload(file);
             }
         } else {
-            // Traditional Fallback for iOS/Firefox/Mobile
             this.fallbackSaveDownload(file);
         }
     }
@@ -365,7 +356,6 @@ class LipiApp {
         this.openFiles.forEach(file => {
             const li = document.createElement('li');
             li.className = `drawer-item ${file.id === this.activeFileId ? 'active' : ''}`;
-            
             li.innerHTML = `
                 <div class="file-info">
                     <span class="material-symbols-rounded icon">description</span>
@@ -375,7 +365,6 @@ class LipiApp {
                     <span class="material-symbols-rounded">close</span>
                 </button>
             `;
-            
             li.addEventListener('click', (e) => {
                 if (e.target.closest('.close-btn')) {
                     e.stopPropagation();
@@ -386,7 +375,6 @@ class LipiApp {
                     this.toggleDrawer(false);
                 }
             });
-
             this.elements.openFilesList.appendChild(li);
         });
     }

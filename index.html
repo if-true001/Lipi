@@ -13,7 +13,6 @@
 </head>
 <body>
 
-    <!-- NEW: Fallback File Input for unsupported devices (Mobile/iOS) -->
     <input type="file" id="fallback-file-input" style="display: none;" accept=".txt,.md,.html,.css,.js,.json">
 
     <div id="drawer-overlay" class="scrim hidden"></div>
@@ -24,7 +23,8 @@
         </div>
         
         <div class="drawer-content">
-            <span class="label-large section-label">Open Editors</span>
+            <!-- Updated label to ACTIVE FILES -->
+            <span class="label-large section-label">ACTIVE FILES</span>
             <ul id="open-files-list" class="drawer-list">
                 <li class="drawer-item active" id="welcome-sidebar-item">
                     <div class="file-info">
@@ -65,10 +65,12 @@
                         <button class="menu-item" id="dropdown-open-file">
                             <span class="material-symbols-rounded">folder_open</span> Open File...
                         </button>
-                        <div class="menu-divider"></div>
-                        <span class="menu-label">Recent</span>
-                        <div id="dropdown-recent-list">
-                            <button class="menu-item disabled">No recent files</button>
+                        
+                        <!-- Recent section in Dropdown -->
+                        <div id="dropdown-recent-group">
+                            <div class="menu-divider"></div>
+                            <span class="menu-label">Recent</span>
+                            <div id="dropdown-recent-list"></div>
                         </div>
                     </div>
                 </div>
@@ -93,11 +95,11 @@
                             <span class="material-symbols-rounded">folder_open</span> Open File...
                         </button>
                     </div>
-                    <div class="action-group">
+
+                    <!-- Recent section in Welcome View -->
+                    <div class="action-group" id="welcome-recent-group">
                         <span class="label-large">Recent</span>
-                        <div id="recent-files-container" class="recent-list">
-                            <span class="empty-state">Loading...</span>
-                        </div>
+                        <div id="recent-files-container" class="recent-list"></div>
                     </div>
                 </div>
             </div>

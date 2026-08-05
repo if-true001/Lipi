@@ -1,8 +1,8 @@
 # Lipi
 
-feat: implement native 'Save As' dialog for newly created files
+polishing: refine UI for unsupported browsers and update sidebar labels
 
-- Upgraded `saveCurrentFile` to use `showSaveFilePicker` for files without an existing handle
-- Implemented dynamic UI updates to reflect filename changes made via the OS save dialog
-- Added logic to automatically push newly saved files into the IndexedDB Recent Files list
-- Handled `AbortError` gracefully so canceling the save dialog doesn't trigger a fallback download
+- Added feature detection for the File System Access API
+- Conditionally hide "Recent" sections in the Welcome View and Dropdown for unsupported browsers
+- Changed sidebar section label from "OPEN EDITORS" to "ACTIVE FILES"
+- Updated `initDB` and `renderRecentFiles` to fail gracefully if the API is missing
