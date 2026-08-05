@@ -1,9 +1,8 @@
 # Lipi
 
-feat: build custom M3 theme dropdown and custom keyboard focus
+style: refine theme dropdown button aesthetics and focus states
 
-- Completely replaced native `<select>` element with a custom HTML/CSS/JS dropdown
-- Implemented global keyboard focus engine: stripped all native `outline` properties and replaced them with `:focus-visible` background color highlights
-- Reused existing `.m3-menu` CSS class to ensure the new Theme dropdown matches the visual style of the Add and Save menus
-- Updated JavaScript to handle custom theme dropdown state, option selection, and label updating
-- Ensured keyboard arrow keys no longer accidentally cycle themes since the native select is gone
+- Removed `border` and updated `background-color` on `.m3-select-btn` to `surface-container-high` for instant M3 interactive recognition
+- Added mouse hover states to `.m3-select-btn` with dark mode support
+- Removed old padding/border-shifting `:focus-visible` rules
+- Injected `.m3-select-btn:focus-visible` into the global Keyboard Focus Engine for a unified background highlight behavior
