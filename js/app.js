@@ -5,7 +5,7 @@ class LipiApp {
     constructor() {
         this.supportsFileSystemAPI = 'showOpenFilePicker' in window;
         this.initDOM();
-        this.initTheme(); // NEW: Load theme preference
+        this.initTheme();
         this.handleFeatureSupportUI();
         this.bindEvents();
         
@@ -31,6 +31,9 @@ class LipiApp {
             menuBtn: document.getElementById('menu-btn'),
             fileNameDisplay: document.getElementById('current-file-name'),
             unsavedIndicator: document.getElementById('unsaved-indicator'),
+            
+            // NEW: Action grouping for easy toggling
+            topBarActions: document.getElementById('top-bar-actions'),
             
             addBtn: document.getElementById('add-btn'),
             addDropdown: document.getElementById('add-dropdown'),
@@ -66,12 +69,12 @@ class LipiApp {
             overlay: document.getElementById('drawer-overlay'),
             openFilesList: document.getElementById('open-files-list'),
             welcomeSidebarItem: document.getElementById('welcome-sidebar-item'),
-            settingsBtn: document.getElementById('settings-btn'), // NEW
+            settingsBtn: document.getElementById('settings-btn'), 
             
             welcomeView: document.getElementById('welcome-view'),
             editorView: document.getElementById('editor-view'),
-            settingsView: document.getElementById('settings-view'), // NEW
-            themeSelect: document.getElementById('theme-select'), // NEW
+            settingsView: document.getElementById('settings-view'), 
+            themeSelect: document.getElementById('theme-select'), 
             
             mainEditor: document.getElementById('main-editor'),
             btnNewFile: document.getElementById('action-new-file'),
@@ -84,7 +87,6 @@ class LipiApp {
         };
     }
 
-    // --- Theme Management ---
     initTheme() {
         const savedTheme = localStorage.getItem('lipi-theme') || 'system';
         this.elements.themeSelect.value = savedTheme;
@@ -100,7 +102,6 @@ class LipiApp {
             document.documentElement.removeAttribute('data-theme');
         }
     }
-    // ------------------------
 
     handleFeatureSupportUI() {
         if (!this.supportsFileSystemAPI) {
@@ -114,17 +115,17 @@ class LipiApp {
     }
 
     bindEvents() {
-        // Theme Listener
+        // Theme Listener updated with .blur()
         this.elements.themeSelect.addEventListener('change', (e) => {
             const newTheme = e.target.value;
             localStorage.setItem('lipi-theme', newTheme);
             this.applyTheme(newTheme);
+            // Drops keyboard focus so arrow keys don't accidentally cycle themes later
+            e.target.blur(); 
         });
 
-        // Open Settings
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
-        // Context Menu Management
         document.addEventListener('contextmenu', (e) => {
             if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]') || e.target.closest('select')) {
                 return;
@@ -515,11 +516,9 @@ class LipiApp {
         }
     }
 
-    // --- NEW: SPA Router for Settings ---
     switchView(viewName) {
         this.currentView = viewName;
         
-        // Hide all views securely
         this.elements.welcomeView.classList.replace('active', 'hidden') || this.elements.welcomeView.classList.add('hidden');
         this.elements.editorView.classList.replace('active', 'hidden') || this.elements.editorView.classList.add('hidden');
         this.elements.settingsView.classList.replace('active', 'hidden') || this.elements.settingsView.classList.add('hidden');
@@ -541,9 +540,10 @@ class LipiApp {
         this.elements.fileNameDisplay.contentEditable = "false";
         
         this.elements.unsavedIndicator.style.display = 'none';
-        this.elements.saveBtn.disabled = true; 
         
-        // Manage Sidebar states
+        // Hide Top Bar Actions for clean UI
+        this.elements.topBarActions.style.display = 'none';
+        
         Array.from(this.elements.openFilesList.children).forEach(li => li.classList.remove('active'));
         this.elements.welcomeSidebarItem.classList.remove('active');
         this.elements.settingsBtn.classList.add('active');
@@ -552,7 +552,6 @@ class LipiApp {
         this.toggleSaveDropdown(false);
         this.toggleDrawer(false);
     }
-    // ------------------------------------
 
     updateUnsavedUI() {
         if (!this.activeFileId) {
@@ -645,12 +644,14 @@ class LipiApp {
         
         this.switchView('editor');
         
+        // Restore Top Bar Actions
+        this.elements.topBarActions.style.display = 'flex';
+        
         this.elements.fileNameDisplay.textContent = file.name;
         this.elements.fileNameDisplay.classList.remove('brand-font');
         this.elements.fileNameDisplay.classList.add('editable');
         this.elements.fileNameDisplay.contentEditable = "true";
         
-        // Remove Settings Active State
         this.elements.settingsBtn.classList.remove('active');
         
         this.elements.mainEditor.value = file.content;
@@ -739,7 +740,7 @@ class LipiApp {
                 this.saveToRecent(file.name, handle);
                 this.markAsSaved(file);
             } catch (e) {
-                // User cancelled, do nothing
+                // User cancelled
             }
         } else {
             this.openSaveAsModal(file.name);
@@ -768,12 +769,13 @@ class LipiApp {
         this.activeFileId = null;
         this.switchView('welcome');
         
+        this.elements.topBarActions.style.display = 'flex';
+        
         this.elements.fileNameDisplay.textContent = 'Lipi';
         this.elements.fileNameDisplay.classList.add('brand-font');
         this.elements.fileNameDisplay.classList.remove('editable');
         this.elements.fileNameDisplay.contentEditable = "false";
         
-        // Remove Settings Active State
         this.elements.settingsBtn.classList.remove('active');
         
         this.elements.unsavedIndicator.style.display = 'none';

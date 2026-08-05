@@ -85,7 +85,8 @@
                 <span id="unsaved-indicator" style="display: none; color: var(--md-sys-color-primary); font-size: 14px; margin-left: -2px;">●</span>
             </div>
             
-            <div class="top-bar-right">
+            <!-- NEW: Added ID for JS targeting -->
+            <div class="top-bar-right" id="top-bar-actions">
                 <div class="dropdown-anchor">
                     <button class="icon-btn" id="add-btn" aria-label="Add new or open">
                         <span class="material-symbols-rounded">add</span>
@@ -152,7 +153,6 @@
             <textarea id="main-editor" class="body-large" spellcheck="false" placeholder="Start typing..."></textarea>
         </div>
 
-        <!-- NEW: Settings View -->
         <div id="settings-view" class="editor-canvas hidden">
             <div class="settings-content">
                 <h2 class="display-large" style="font-size: 32px; line-height: 1.2; margin-bottom: 16px;">Settings</h2>
@@ -168,8 +168,6 @@
                         <option value="dark">Dark</option>
                     </select>
                 </div>
-                
-                <!-- Future settings can easily be added below -->
             </div>
         </div>
 

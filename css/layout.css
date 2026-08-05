@@ -186,7 +186,7 @@ body { display: flex; }
 .remove-recent-btn { width: 32px; height: 32px; opacity: 0.4; transition: opacity 0.2s, background-color 0.2s; }
 .remove-recent-btn:hover { opacity: 1; background-color: var(--md-sys-color-surface-container-high); }
 
-/* NEW: Settings View Styles */
+/* Settings View Styles */
 .settings-content {
     padding: 32px 24px;
     max-width: 800px;
@@ -221,7 +221,9 @@ body { display: flex; }
     min-width: 180px;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.2s;
 }
-.m3-select:focus {
+
+/* NEW: focus-visible replaces standard focus for cleaner mouse clicks */
+.m3-select:focus-visible {
     border-color: var(--md-sys-color-primary);
     border-width: 2px;
     padding: 11px 15px; 

@@ -1,9 +1,8 @@
 # Lipi
 
-feat: implement settings page with dynamic M3 dark mode theming
+feat: hide action buttons in settings and improve theme select UX
 
-- Created `#settings-view` workspace canvas to replace the editor/welcome screen
-- Implemented a Theme toggle dropdown (Light, Dark, System Default)
-- Added comprehensive M3 dark mode CSS variables using data attributes and media queries
-- Updated JS state management to handle the settings view and highlight the sidebar button
-- Connected theme selection to `localStorage` for persistent user preferences
+- Added `id="top-bar-actions"` to the right App Bar container for precise JS targeting
+- Updated UI state logic to hide the top bar actions when in Settings View, restoring them for Editor/Welcome views
+- Replaced `.m3-select:focus` with `:focus-visible` in CSS to prevent lingering focus styles after mouse interaction
+- Appended `e.target.blur()` to the theme selection listener to drop keyboard focus and prevent accidental arrow-key changes
