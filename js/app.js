@@ -10,7 +10,7 @@ class LipiApp {
         
         this.isDrawerOpen = false;
         this.isAddDropdownOpen = false;
-        this.isSaveDropdownOpen = false; // NEW
+        this.isSaveDropdownOpen = false;
         this.currentView = 'welcome';
         this.fileCounter = 0;
         
@@ -29,13 +29,11 @@ class LipiApp {
             fileNameDisplay: document.getElementById('current-file-name'),
             unsavedIndicator: document.getElementById('unsaved-indicator'),
             
-            // Add Menu Elements
             addBtn: document.getElementById('add-btn'),
             addDropdown: document.getElementById('add-dropdown'),
             dropdownNewFile: document.getElementById('dropdown-new-file'),
             dropdownOpenFile: document.getElementById('dropdown-open-file'),
             
-            // NEW: Save Menu Elements
             saveBtn: document.getElementById('save-btn'),
             saveDropdown: document.getElementById('save-dropdown'),
             dropdownActionSave: document.getElementById('dropdown-action-save'),
@@ -43,6 +41,13 @@ class LipiApp {
             mainSaveIcon: document.getElementById('main-save-icon'),
             iconActionSave: document.getElementById('icon-action-save'),
             iconActionSaveAs: document.getElementById('icon-action-save-as'),
+            
+            // NEW: Modal Elements
+            modalOverlay: document.getElementById('modal-overlay'),
+            saveAsModal: document.getElementById('save-as-modal'),
+            saveAsInput: document.getElementById('save-as-input'),
+            modalCancelBtn: document.getElementById('modal-cancel-btn'),
+            modalSaveBtn: document.getElementById('modal-save-btn'),
             
             sidebar: document.getElementById('sidebar'),
             overlay: document.getElementById('drawer-overlay'),
@@ -63,11 +68,9 @@ class LipiApp {
 
     handleFeatureSupportUI() {
         if (!this.supportsFileSystemAPI) {
-            // Remove recent lists
             if (this.elements.welcomeRecentGroup) this.elements.welcomeRecentGroup.remove();
             if (this.elements.dropdownRecentGroup) this.elements.dropdownRecentGroup.remove();
             
-            // Swap M3 Icons to fallback download styles
             this.elements.mainSaveIcon.textContent = 'download';
             this.elements.iconActionSave.textContent = 'download';
             this.elements.iconActionSaveAs.textContent = 'sim_card_download';
@@ -79,21 +82,18 @@ class LipiApp {
         this.elements.overlay.addEventListener('click', () => this.toggleDrawer(false));
         window.addEventListener('resize', () => { if (window.innerWidth >= 900) this.toggleDrawer(false); });
 
-        // Add Dropdown Toggle
         this.elements.addBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleAddDropdown(!this.isAddDropdownOpen);
-            this.toggleSaveDropdown(false); // Close the other dropdown
+            this.toggleSaveDropdown(false); 
         });
 
-        // Save Dropdown Toggle
         this.elements.saveBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleSaveDropdown(!this.isSaveDropdownOpen);
-            this.toggleAddDropdown(false); // Close the other dropdown
+            this.toggleAddDropdown(false); 
         });
 
-        // Close dropdowns if clicked outside
         document.addEventListener('click', (e) => {
             if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) {
                 this.toggleAddDropdown(false);
@@ -103,7 +103,6 @@ class LipiApp {
             }
         });
 
-        // Save Actions
         this.elements.dropdownActionSave.addEventListener('click', () => {
             this.toggleSaveDropdown(false);
             this.saveCurrentFile();
@@ -112,6 +111,14 @@ class LipiApp {
         this.elements.dropdownActionSaveAs.addEventListener('click', () => {
             this.toggleSaveDropdown(false);
             this.saveFileAs();
+        });
+
+        // NEW: Modal Events
+        this.elements.modalCancelBtn.addEventListener('click', () => this.closeSaveAsModal());
+        this.elements.modalSaveBtn.addEventListener('click', () => this.confirmSaveAs());
+        this.elements.saveAsInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.confirmSaveAs();
+            if (e.key === 'Escape') this.closeSaveAsModal();
         });
 
         this.elements.welcomeSidebarItem.addEventListener('click', () => this.activateWelcomeScreen());
@@ -254,6 +261,45 @@ class LipiApp {
         }
     }
 
+    // --- NEW: Custom Modal Handlers ---
+    openSaveAsModal(fileName) {
+        this.elements.saveAsInput.value = fileName;
+        this.elements.modalOverlay.classList.add('active');
+        this.elements.saveAsModal.classList.add('active');
+        this.elements.saveAsInput.focus();
+        
+        // Smart Selection: Highlight only the name, not the .txt
+        const dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            this.elements.saveAsInput.setSelectionRange(0, dotIndex);
+        } else {
+            this.elements.saveAsInput.select();
+        }
+    }
+
+    closeSaveAsModal() {
+        this.elements.modalOverlay.classList.remove('active');
+        this.elements.saveAsModal.classList.remove('active');
+    }
+
+    confirmSaveAs() {
+        if (!this.activeFileId) return;
+        const file = this.openFiles.find(f => f.id === this.activeFileId);
+        
+        let newName = this.elements.saveAsInput.value.trim();
+        if (!newName) return;
+
+        if (!newName.includes('.')) newName += '.txt';
+        
+        file.name = newName;
+        this.elements.fileNameDisplay.textContent = file.name;
+        file.handle = null; // Sever handle for new download
+        
+        this.closeSaveAsModal();
+        this.fallbackSaveDownload(file);
+    }
+    // ----------------------------------
+
     switchView(viewName) {
         this.currentView = viewName;
         if (viewName === 'editor') {
@@ -268,11 +314,10 @@ class LipiApp {
     updateUnsavedUI() {
         if (!this.activeFileId) {
             this.elements.unsavedIndicator.style.display = 'none';
-            this.elements.saveBtn.disabled = true; // Entire dropdown disabled
+            this.elements.saveBtn.disabled = true; 
             return;
         }
         
-        // A file is open, so we can always open the menu to 'Save As'
         this.elements.saveBtn.disabled = false;
         
         const file = this.openFiles.find(f => f.id === this.activeFileId);
@@ -416,6 +461,8 @@ class LipiApp {
         if (!this.activeFileId) return;
         const file = this.openFiles.find(f => f.id === this.activeFileId);
         
+        this.toggleSaveDropdown(false);
+
         if (this.supportsFileSystemAPI) {
             try {
                 const handle = await window.showSaveFilePicker({
@@ -437,14 +484,8 @@ class LipiApp {
                 // User cancelled, do nothing
             }
         } else {
-            let newName = prompt("Save file as:", file.name);
-            if (newName) {
-                if (!newName.includes('.')) newName += '.txt';
-                file.name = newName;
-                this.elements.fileNameDisplay.textContent = file.name;
-                file.handle = null;
-                this.fallbackSaveDownload(file);
-            }
+            // NEW: Use Custom Modal instead of prompt()
+            this.openSaveAsModal(file.name);
         }
     }
 
@@ -476,7 +517,7 @@ class LipiApp {
         this.elements.fileNameDisplay.contentEditable = "false";
         
         this.elements.unsavedIndicator.style.display = 'none';
-        this.elements.saveBtn.disabled = true; // Disable main menu toggle
+        this.elements.saveBtn.disabled = true; 
         this.updateSidebar();
         
         this.toggleAddDropdown(false);

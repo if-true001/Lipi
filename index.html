@@ -15,7 +15,21 @@
 
     <input type="file" id="fallback-file-input" style="display: none;" accept=".txt,.md,.html,.css,.js,.json">
 
+    <!-- Existing Drawer Overlay -->
     <div id="drawer-overlay" class="scrim hidden"></div>
+
+    <!-- NEW: Modal Overlay & Dialog -->
+    <div id="modal-overlay" class="scrim hidden"></div>
+    <div id="save-as-modal" class="m3-dialog hidden">
+        <h3 class="title-large">Save As</h3>
+        <div class="dialog-content">
+            <input type="text" id="save-as-input" class="m3-text-input" placeholder="Enter file name..." autocomplete="off">
+        </div>
+        <div class="dialog-actions">
+            <button class="text-btn" id="modal-cancel-btn">Cancel</button>
+            <button class="text-btn primary-text" id="modal-save-btn">Save</button>
+        </div>
+    </div>
 
     <aside id="sidebar" class="md-drawer">
         <div class="drawer-header">
@@ -53,7 +67,6 @@
             </div>
             
             <div class="top-bar-right">
-                <!-- Add Menu -->
                 <div class="dropdown-anchor">
                     <button class="icon-btn" id="add-btn" aria-label="Add new or open">
                         <span class="material-symbols-rounded">add</span>
@@ -75,7 +88,6 @@
                     </div>
                 </div>
 
-                <!-- NEW: Save Menu Anchor -->
                 <div class="dropdown-anchor">
                     <button class="icon-btn dropdown-btn" id="save-btn" aria-label="Save options" disabled>
                         <span id="main-save-icon" class="material-symbols-rounded">save</span>
