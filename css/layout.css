@@ -209,7 +209,6 @@ body { display: flex; }
 [data-theme="dark"] .m3-btn-danger { color: #ffb4ab !important; }
 [data-theme="dark"] .m3-btn-danger:hover { background-color: rgba(255, 180, 171, 0.08); }
 
-/* NEW: Material 3 Bottom Sheet */
 .m3-bottom-sheet {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background-color: var(--md-sys-color-surface-container-high);
@@ -245,7 +244,9 @@ body { display: flex; }
 .editor-canvas { display: none; flex-grow: 1; height: 100%; min-height: 0; }
 .editor-canvas.active { display: flex; flex-direction: column; }
 #welcome-view, #settings-view { overflow-y: auto; }
-#editor-view { overflow: hidden; }
+
+/* FIXED: Allow floating elements over the editor view securely */
+#editor-view { overflow: hidden; position: relative; }
 
 .welcome-content { margin: auto; padding: 24px; max-width: 800px; width: 100%; }
 .action-columns { display: flex; flex-direction: column; gap: 48px; }
@@ -289,7 +290,7 @@ body { display: flex; }
 
 #main-editor::placeholder { font-family: inherit; opacity: 0.6; }
 
-/* FIXED: Removed Ribbon behavior */
+/* FIXED: Seamless morphing animations for the status bar */
 #status-bar {
     display: flex; align-items: center; justify-content: space-between;
     height: 28px; padding: 0 16px; flex-shrink: 0;
@@ -297,8 +298,25 @@ body { display: flex; }
     border-top: 1px solid var(--md-sys-color-surface-container-high);
     color: var(--md-sys-color-on-surface);
     font-size: 12px; z-index: 10;
-    user-select: none; transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    user-select: none; 
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
     overflow: hidden;
+}
+
+/* FIXED: M3 Floating Pill style for Mobile Status */
+#status-bar.pill-mode {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: fit-content;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: var(--md-sys-color-surface-container-highest);
+    border-top: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    gap: 8px; 
+    padding: 0 20px;
 }
 
 .status-left, .status-right { display: flex; gap: 24px; white-space: nowrap; opacity: 0.8; }
@@ -330,7 +348,16 @@ body { display: flex; }
     transition: border-color 0.3s ease;
 }
 .setting-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
-.setting-info { display: flex; flex-direction: column; gap: 4px; }
+
+/* FIXED: Prevent text and toggles from squishing on narrow screens */
+.setting-info { 
+    display: flex; flex-direction: column; gap: 4px; 
+    flex: 1; 
+    padding-right: 16px; 
+}
+.m3-switch, .dropdown-anchor {
+    flex-shrink: 0;
+}
 
 .m3-select-btn {
     display: flex; align-items: center; justify-content: space-between;

@@ -4,7 +4,6 @@
 class LipiApp {
     constructor() {
         this.supportsFileSystemAPI = 'showOpenFilePicker' in window;
-        // NEW: Detect actual mobile OS 
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         this.preserveData = localStorage.getItem('lipi-preserve-data') === 'true';
@@ -15,7 +14,7 @@ class LipiApp {
             'lipi-editor-font': 'default',
             'lipi-editor-font-label': 'JetBrains Mono (Default)',
             'lipi-line-numbers': 'false', 
-            'lipi-mobile-bar-force': 'false', // NEW: Store mobile override pref
+            'lipi-mobile-bar-force': 'false', 
             recents: []
         };
         
@@ -87,7 +86,6 @@ class LipiApp {
             modalUnsavedDiscardBtn: document.getElementById('modal-unsaved-discard-btn'),
             modalUnsavedSaveBtn: document.getElementById('modal-unsaved-save-btn'),
             
-            // NEW: Status Sheet Modals
             statusSheetScrim: document.getElementById('status-sheet-scrim'),
             statusBottomSheet: document.getElementById('status-bottom-sheet'),
             sheetCursor: document.getElementById('sheet-cursor'),
@@ -122,7 +120,6 @@ class LipiApp {
             preserveDataToggle: document.getElementById('preserve-data-toggle'), 
             preserveDataDesc: document.getElementById('preserve-data-desc'),
             
-            // NEW: Mobile Bar override setting
             mobileBarSetting: document.getElementById('mobile-bar-setting'),
             mobileBarToggle: document.getElementById('mobile-bar-toggle'),
             
@@ -133,8 +130,8 @@ class LipiApp {
             statusBar: document.getElementById('status-bar'),
             statusCursor: document.getElementById('status-cursor'),
             statusLength: document.getElementById('status-length'),
-            statusRightGroup: document.getElementById('status-right-group'), // NEW
-            statusExpandIcon: document.getElementById('status-expand-icon'), // NEW
+            statusRightGroup: document.getElementById('status-right-group'),
+            statusExpandIcon: document.getElementById('status-expand-icon'),
             statusLanguage: document.getElementById('status-language'),
             statusCrlf: document.getElementById('status-crlf'),
             statusEncoding: document.getElementById('status-encoding'),
@@ -168,14 +165,12 @@ class LipiApp {
         
         this.elements.preserveDataToggle.checked = this.preserveData;
         
-        // Expose setting only if physically running on mobile
         if (this.isMobile) {
             this.elements.mobileBarSetting.style.display = 'flex';
             this.elements.mobileBarToggle.checked = this.getSetting('lipi-mobile-bar-force') === 'true';
         }
     }
 
-    // --- UPDATED: Dynamic Logic Engine ---
     updateStatusBar() {
         if (!this.activeFileId) return;
         const file = this.openFiles.find(f => f.id === this.activeFileId);
@@ -184,11 +179,9 @@ class LipiApp {
         const val = this.elements.mainEditor.value;
         const start = this.elements.mainEditor.selectionStart;
 
-        // View States
         const isNarrow = window.innerWidth <= 600;
         const useSheet = this.isMobile && this.getSetting('lipi-mobile-bar-force') !== 'true';
 
-        // Calculation
         const lines = val.substring(0, start).split('\n');
         const currentLine = lines.length;
         const currentCol = lines[lines.length - 1].length + 1;
@@ -214,24 +207,27 @@ class LipiApp {
         this.elements.statusCursor.textContent = cursorText;
 
         if (useSheet) {
-            // Apply Mobile Button Style
             this.elements.statusRightGroup.style.display = 'none';
             this.elements.statusExpandIcon.style.display = 'block';
             this.elements.statusBar.style.cursor = 'pointer';
             
+            // FIXED: Dynamically inject pill class to trigger CSS animation
+            this.elements.statusBar.classList.add('pill-mode');
+            
             this.elements.statusLength.textContent = charCompact;
 
-            // Populate hidden Bottom Sheet
             this.elements.sheetCursor.textContent = cursorText;
             this.elements.sheetLength.textContent = charFull;
             this.elements.sheetLanguage.textContent = ext;
             this.elements.sheetCrlf.textContent = lineEndFull;
             this.elements.sheetEncoding.textContent = 'UTF-8';
         } else {
-            // Apply Desktop/Narrow Layout
             this.elements.statusRightGroup.style.display = 'flex';
             this.elements.statusExpandIcon.style.display = 'none';
             this.elements.statusBar.style.cursor = 'default';
+            
+            // FIXED: Remove pill class safely to return to desktop bar
+            this.elements.statusBar.classList.remove('pill-mode');
 
             this.elements.statusLength.textContent = isNarrow ? charCompact : charFull;
             this.elements.statusCrlf.textContent = isNarrow ? lineEndCompact : lineEndFull;
@@ -249,7 +245,6 @@ class LipiApp {
         this.elements.statusSheetScrim.classList.remove('active');
         this.elements.statusBottomSheet.classList.remove('active');
     }
-    // -------------------------------------
 
     getSetting(key) {
         if (this.preserveData) {
@@ -392,20 +387,17 @@ class LipiApp {
     }
 
     bindEvents() {
-        // Trigger live UI refresh on resize to handle abbreviations 
         window.addEventListener('resize', () => { 
             if (window.innerWidth >= 900) this.toggleDrawer(false); 
             this.updateStatusBar();
         });
 
-        // NEW: Bottom Sheet hooks
         this.elements.statusBar.addEventListener('click', () => {
             const useSheet = this.isMobile && this.getSetting('lipi-mobile-bar-force') !== 'true';
             if (useSheet) this.openStatusSheet();
         });
         this.elements.statusSheetScrim.addEventListener('click', () => this.closeStatusSheet());
 
-        // NEW: Mobile Bar override listener
         this.elements.mobileBarToggle.addEventListener('change', (e) => {
             this.setSetting('lipi-mobile-bar-force', e.target.checked.toString());
             this.updateStatusBar();
@@ -462,7 +454,7 @@ class LipiApp {
                 localStorage.setItem('lipi-editor-font', this.memoryState['lipi-editor-font']);
                 localStorage.setItem('lipi-editor-font-label', this.memoryState['lipi-editor-font-label']);
                 localStorage.setItem('lipi-line-numbers', this.memoryState['lipi-line-numbers']); 
-                localStorage.setItem('lipi-mobile-bar-force', this.memoryState['lipi-mobile-bar-force']); // NEW
+                localStorage.setItem('lipi-mobile-bar-force', this.memoryState['lipi-mobile-bar-force']); 
 
                 if (this.db && this.memoryState.recents.length > 0) {
                     await new Promise(resolve => {
@@ -479,7 +471,7 @@ class LipiApp {
                 this.memoryState['lipi-editor-font'] = localStorage.getItem('lipi-editor-font') || 'default';
                 this.memoryState['lipi-editor-font-label'] = localStorage.getItem('lipi-editor-font-label') || 'JetBrains Mono (Default)';
                 this.memoryState['lipi-line-numbers'] = localStorage.getItem('lipi-line-numbers') || 'false'; 
-                this.memoryState['lipi-mobile-bar-force'] = localStorage.getItem('lipi-mobile-bar-force') || 'false'; // NEW
+                this.memoryState['lipi-mobile-bar-force'] = localStorage.getItem('lipi-mobile-bar-force') || 'false'; 
 
                 if (this.db) {
                     this.memoryState.recents = await this.getDBRecents();
