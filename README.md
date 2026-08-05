@@ -1,8 +1,9 @@
 # Lipi
 
-fix: restore keyboard focus flow and remove native select styling
+feat: build custom M3 theme dropdown and custom keyboard focus
 
-- Removed `e.target.blur()` from theme selector to allow continuous keyboard navigation via Tab key
-- Added `appearance: none` and a custom SVG background arrow to `.m3-select` to completely override native browser dropdown styling
-- Enforced `outline: none` and `box-shadow: none` to prevent default browser focus rings from overriding the M3 design
-- Adjusted `:focus-visible` padding constraints to accommodate the new custom arrow spacing
+- Completely replaced native `<select>` element with a custom HTML/CSS/JS dropdown
+- Implemented global keyboard focus engine: stripped all native `outline` properties and replaced them with `:focus-visible` background color highlights
+- Reused existing `.m3-menu` CSS class to ensure the new Theme dropdown matches the visual style of the Add and Save menus
+- Updated JavaScript to handle custom theme dropdown state, option selection, and label updating
+- Ensured keyboard arrow keys no longer accidentally cycle themes since the native select is gone

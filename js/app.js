@@ -12,6 +12,8 @@ class LipiApp {
         this.isDrawerOpen = false;
         this.isAddDropdownOpen = false;
         this.isSaveDropdownOpen = false;
+        this.isThemeDropdownOpen = false; // NEW
+        
         this.currentView = 'welcome';
         this.fileCounter = 0;
         
@@ -72,7 +74,12 @@ class LipiApp {
             welcomeView: document.getElementById('welcome-view'),
             editorView: document.getElementById('editor-view'),
             settingsView: document.getElementById('settings-view'), 
-            themeSelect: document.getElementById('theme-select'), 
+            
+            // NEW: Custom Theme Elements
+            themeSelectBtn: document.getElementById('theme-select-btn'),
+            themeSelectLabel: document.getElementById('theme-select-label'),
+            themeDropdown: document.getElementById('theme-dropdown'),
+            themeOptions: document.querySelectorAll('.theme-option'),
             
             mainEditor: document.getElementById('main-editor'),
             btnNewFile: document.getElementById('action-new-file'),
@@ -85,9 +92,10 @@ class LipiApp {
         };
     }
 
+    // --- Theme Management ---
     initTheme() {
         const savedTheme = localStorage.getItem('lipi-theme') || 'system';
-        this.elements.themeSelect.value = savedTheme;
+        this.updateThemeLabel(savedTheme);
         this.applyTheme(savedTheme);
     }
 
@@ -101,6 +109,22 @@ class LipiApp {
         }
     }
 
+    updateThemeLabel(themeValue) {
+        if (themeValue === 'system') this.elements.themeSelectLabel.textContent = 'System Default';
+        if (themeValue === 'light') this.elements.themeSelectLabel.textContent = 'Light';
+        if (themeValue === 'dark') this.elements.themeSelectLabel.textContent = 'Dark';
+    }
+
+    toggleThemeDropdown(open) {
+        this.isThemeDropdownOpen = open;
+        if (this.isThemeDropdownOpen) {
+            this.elements.themeDropdown.classList.remove('hidden');
+        } else {
+            this.elements.themeDropdown.classList.add('hidden');
+        }
+    }
+    // ------------------------
+
     handleFeatureSupportUI() {
         if (!this.supportsFileSystemAPI) {
             if (this.elements.welcomeRecentGroup) this.elements.welcomeRecentGroup.remove();
@@ -113,17 +137,27 @@ class LipiApp {
     }
 
     bindEvents() {
-        // FIXED: .blur() removed to restore proper keyboard navigation
-        this.elements.themeSelect.addEventListener('change', (e) => {
-            const newTheme = e.target.value;
-            localStorage.setItem('lipi-theme', newTheme);
-            this.applyTheme(newTheme);
+        // --- NEW: Custom Theme Selection Events ---
+        this.elements.themeSelectBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleThemeDropdown(!this.isThemeDropdownOpen);
         });
+
+        this.elements.themeOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                const newTheme = e.target.dataset.themeVal;
+                localStorage.setItem('lipi-theme', newTheme);
+                this.updateThemeLabel(newTheme);
+                this.applyTheme(newTheme);
+                this.toggleThemeDropdown(false);
+            });
+        });
+        // ------------------------------------------
 
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
         document.addEventListener('contextmenu', (e) => {
-            if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]') || e.target.closest('select')) {
+            if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]') || e.target.closest('button.m3-select-btn')) {
                 return;
             }
             e.preventDefault(); 
@@ -140,6 +174,11 @@ class LipiApp {
             this.hideContextMenu();
             if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) this.toggleAddDropdown(false);
             if (this.isSaveDropdownOpen && !this.elements.saveDropdown.contains(e.target)) this.toggleSaveDropdown(false);
+            
+            // NEW: Close theme dropdown if clicked outside
+            if (this.isThemeDropdownOpen && !this.elements.themeDropdown.contains(e.target) && e.target !== this.elements.themeSelectBtn) {
+                this.toggleThemeDropdown(false);
+            }
         });
 
         this.elements.ctxOpen.addEventListener('click', () => {
@@ -536,7 +575,7 @@ class LipiApp {
         this.elements.fileNameDisplay.contentEditable = "false";
         
         this.elements.unsavedIndicator.style.display = 'none';
-        this.elements.topBarActions.style.display = 'none'; // Clean UI
+        this.elements.topBarActions.style.display = 'none'; 
         
         Array.from(this.elements.openFilesList.children).forEach(li => li.classList.remove('active'));
         this.elements.welcomeSidebarItem.classList.remove('active');
@@ -638,7 +677,7 @@ class LipiApp {
         
         this.switchView('editor');
         
-        this.elements.topBarActions.style.display = 'flex'; // Restore UI
+        this.elements.topBarActions.style.display = 'flex'; 
         
         this.elements.fileNameDisplay.textContent = file.name;
         this.elements.fileNameDisplay.classList.remove('brand-font');

@@ -1,3 +1,29 @@
+/* =========================================
+   Custom Keyboard Focus Engine
+========================================= */
+*:focus-visible { outline: none !important; }
+
+/* Apply a distinct background highlight when elements receive keyboard focus */
+.icon-btn:focus-visible,
+.text-btn:focus-visible,
+.m3-btn:focus-visible,
+.menu-item:focus-visible,
+.drawer-item:focus-visible,
+.close-btn:focus-visible,
+.remove-recent-btn:focus-visible {
+    background-color: var(--md-sys-color-surface-container-highest, rgba(0, 104, 116, 0.12));
+}
+
+[data-theme="dark"] .icon-btn:focus-visible,
+[data-theme="dark"] .text-btn:focus-visible,
+[data-theme="dark"] .m3-btn:focus-visible,
+[data-theme="dark"] .menu-item:focus-visible,
+[data-theme="dark"] .drawer-item:focus-visible,
+[data-theme="dark"] .close-btn:focus-visible,
+[data-theme="dark"] .remove-recent-btn:focus-visible {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
 body { display: flex; }
 
 #workspace {
@@ -19,8 +45,9 @@ body { display: flex; }
 .top-bar-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 .top-bar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 #current-file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-#current-file-name.editable { cursor: text; padding: 4px 8px; border-radius: 4px; outline: none; transition: background-color 0.2s; }
-#current-file-name.editable:hover, #current-file-name.editable:focus { background-color: var(--md-sys-color-surface-container-high); }
+#current-file-name.editable { cursor: text; padding: 4px 8px; border-radius: 4px; transition: background-color 0.2s; }
+#current-file-name.editable:hover { background-color: var(--md-sys-color-surface-container-high); }
+#current-file-name.editable:focus-visible { background-color: var(--md-sys-color-surface-container-high); }
 
 .icon-btn {
     background: transparent; border: none; color: var(--md-sys-color-on-surface);
@@ -131,10 +158,10 @@ body { display: flex; }
     border: 1px solid var(--md-sys-color-outline);
     background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface); font-family: inherit;
-    font-size: var(--md-sys-typescale-body-large-size); outline: none; box-sizing: border-box;
+    font-size: var(--md-sys-typescale-body-large-size); box-sizing: border-box;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.2s;
 }
-.m3-text-input:focus { border-color: var(--md-sys-color-primary); border-width: 2px; padding: 11px 15px; }
+.m3-text-input:focus-visible { border-color: var(--md-sys-color-primary); border-width: 2px; padding: 11px 15px; }
 
 .dialog-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .m3-btn {
@@ -173,7 +200,7 @@ body { display: flex; }
 .welcome-content { margin: auto; padding: 24px; max-width: 800px; width: 100%; }
 .action-columns { display: flex; flex-direction: column; gap: 48px; }
 .action-group { display: flex; flex-direction: column; gap: 12px; }
-.text-btn { display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--md-sys-color-primary); font-family: inherit; cursor: pointer; padding: 8px 0; width: fit-content; transition: color 0.3s ease; }
+.text-btn { display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--md-sys-color-primary); font-family: inherit; cursor: pointer; padding: 8px 0; width: fit-content; transition: color 0.3s ease, background-color 0.2s ease; }
 @media (min-width: 600px) { .action-columns { flex-direction: row; gap: 80px; } }
 
 #main-editor {
@@ -188,53 +215,34 @@ body { display: flex; }
 
 /* Settings View Styles */
 .settings-content {
-    padding: 32px 24px;
-    max-width: 800px;
-    margin: 0 auto;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
+    padding: 32px 24px; max-width: 800px; margin: 0 auto; width: 100%;
+    display: flex; flex-direction: column; gap: 32px;
 }
 .setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--md-sys-color-surface-container-high);
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 24px; border-bottom: 1px solid var(--md-sys-color-surface-container-high);
 }
-.setting-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
+.setting-info { display: flex; flex-direction: column; gap: 4px; }
 
-/* NEW: Heavily modified to strip native browser styling */
-.m3-select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    padding: 12px 36px 12px 16px; /* Added right padding for custom arrow */
+/* NEW: Custom Theme Button Styling replacing the native select */
+.m3-select-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
     border-radius: 8px;
     border: 1px solid var(--md-sys-color-outline);
     background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface);
     font-family: inherit;
     font-size: var(--md-sys-typescale-body-large-size);
-    outline: none !important;
-    box-shadow: none !important;
     cursor: pointer;
     min-width: 180px;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.2s;
-    
-    /* Custom SVG Dropdown Arrow to replace the ugly native one */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 -960 960 960' width='24'%3E%3Cpath fill='%236f797a' d='M480-360 280-560h400L480-360Z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
 }
 
-.m3-select:focus-visible {
+.m3-select-btn:focus-visible {
     border-color: var(--md-sys-color-primary);
     border-width: 2px;
-    padding: 11px 35px 11px 15px; /* Shrinks padding by 1px to compensate for 2px border */
+    padding: 11px 15px; /* Offset for border growth */
 }

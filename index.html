@@ -85,7 +85,6 @@
                 <span id="unsaved-indicator" style="display: none; color: var(--md-sys-color-primary); font-size: 14px; margin-left: -2px;">●</span>
             </div>
             
-            <!-- NEW: Added ID for JS targeting -->
             <div class="top-bar-right" id="top-bar-actions">
                 <div class="dropdown-anchor">
                     <button class="icon-btn" id="add-btn" aria-label="Add new or open">
@@ -162,11 +161,21 @@
                         <span class="title-medium">Theme</span>
                         <span class="body-large" style="opacity: 0.7; font-size: 14px;">Choose your preferred appearance</span>
                     </div>
-                    <select id="theme-select" class="m3-select">
-                        <option value="system">System Default</option>
-                        <option value="light">Light</option>
-                        <option value="dark">Dark</option>
-                    </select>
+                    
+                    <!-- NEW: Custom M3 Dropdown replacing native select -->
+                    <div class="dropdown-anchor" id="theme-dropdown-anchor" style="min-width: 180px;">
+                        <button class="m3-select-btn" id="theme-select-btn" aria-label="Select Theme">
+                            <span id="theme-select-label">System Default</span>
+                            <span class="material-symbols-rounded">arrow_drop_down</span>
+                        </button>
+                        
+                        <div id="theme-dropdown" class="m3-menu hidden" style="width: 100%;">
+                            <button class="menu-item theme-option" data-theme-val="system">System Default</button>
+                            <button class="menu-item theme-option" data-theme-val="light">Light</button>
+                            <button class="menu-item theme-option" data-theme-val="dark">Dark</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
