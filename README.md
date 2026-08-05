@@ -1,9 +1,9 @@
 # Lipi
 
-refactor: group settings into M3 cards and dynamically update descriptions
+feat: implement cross-platform keyboard shortcuts and refine UI
 
-- Introduced `.settings-card` CSS class to visually group related configuration items into elevated M3 containers
-- Restructured `index.html` `#settings-view` into "Storage & Privacy" and "Appearance" groups
-- Elevated the "Preserve Session Data" toggle to the very top of the settings page
-- Added `#preserve-data-desc` ID to target the preservation description text
-- Updated `handleFeatureSupportUI` in `app.js` to conditionally rewrite the description, hiding references to "recent files" on unsupported browsers
+- Added global `keydown` listener to intercept and handle application shortcuts
+- Implemented cross-OS modifier detection (`metaKey` for Mac, `ctrlKey` for Windows/Linux)
+- Added `Ctrl/Cmd + S` (Save), `Ctrl/Cmd + Shift + S` (Save As), `Ctrl/Cmd + O` (Open), and `Ctrl/Cmd + N` (New)
+- Added `Ctrl/Cmd + Tab` (and `Shift+Tab`) for cycling through open files, with `Ctrl/Cmd + ArrowUp/ArrowDown` as browser-safe fallbacks
+- Shortened the session preservation setting description to remove the word "browser" for a cleaner UI

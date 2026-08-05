@@ -96,7 +96,7 @@ class LipiApp {
             settingsView: document.getElementById('settings-view'), 
             
             preserveDataToggle: document.getElementById('preserve-data-toggle'), 
-            preserveDataDesc: document.getElementById('preserve-data-desc'), // NEW
+            preserveDataDesc: document.getElementById('preserve-data-desc'),
             
             themeSelectBtn: document.getElementById('theme-select-btn'),
             themeSelectLabel: document.getElementById('theme-select-label'),
@@ -231,15 +231,67 @@ class LipiApp {
             this.elements.iconActionSave.textContent = 'download';
             this.elements.iconActionSaveAs.textContent = 'sim_card_download';
             
-            // NEW: Conditionally hide the recent files mention in the settings toggle description
             if (this.elements.preserveDataDesc) {
-                this.elements.preserveDataDesc.textContent = 'Save settings across browser restarts';
+                // TEXT UPDATED HERE TOO
+                this.elements.preserveDataDesc.textContent = 'Save settings across restarts';
             }
         }
     }
 
     bindEvents() {
-        
+        // ==============================================================
+        // NEW: Global Keyboard Shortcuts Engine (Cross OS)
+        // ==============================================================
+        document.addEventListener('keydown', (e) => {
+            // Detect Mac vs Windows/Linux modifier
+            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+            const modifierKey = isMac ? e.metaKey : e.ctrlKey;
+
+            if (modifierKey) {
+                const key = e.key.toLowerCase();
+
+                // Ctrl/Cmd + S -> Save (or Save As)
+                if (key === 's') {
+                    e.preventDefault(); // Stop native browser save dialog
+                    if (this.activeFileId) {
+                        if (e.shiftKey) {
+                            this.saveFileAs();
+                        } else {
+                            this.saveCurrentFile(); 
+                        }
+                    }
+                } 
+                // Ctrl/Cmd + O -> Open File
+                else if (key === 'o') {
+                    e.preventDefault();
+                    this.openFile();
+                } 
+                // Ctrl/Cmd + N -> New File
+                else if (key === 'n') {
+                    e.preventDefault();
+                    this.createNewFile();
+                } 
+                // Ctrl/Cmd + Tab (or Up/Down Arrow) -> Cycle Files
+                else if (e.key === 'Tab' || key === 'arrowdown' || key === 'arrowup') {
+                    if (this.openFiles.length > 1) {
+                        e.preventDefault(); // Note: Native Tab switching might still intercept on some browsers
+                        const currentIndex = this.openFiles.findIndex(f => f.id === this.activeFileId);
+                        
+                        // Shift+Tab or ArrowUp moves backward, Tab or ArrowDown moves forward
+                        let targetIndex = (e.shiftKey || key === 'arrowup') ? currentIndex - 1 : currentIndex + 1;
+                        
+                        // Loop around the array
+                        if (targetIndex >= this.openFiles.length) targetIndex = 0;
+                        if (targetIndex < 0) targetIndex = this.openFiles.length - 1;
+                        
+                        this.switchToEditor(this.openFiles[targetIndex].id);
+                        this.updateSidebar();
+                    }
+                }
+            }
+        });
+        // ==============================================================
+
         this.elements.preserveDataToggle.addEventListener('change', async (e) => {
             this.preserveData = e.target.checked;
             localStorage.setItem('lipi-preserve-data', this.preserveData);
