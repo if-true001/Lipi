@@ -12,12 +12,14 @@ class LipiApp {
             'lipi-ui-font-label': 'Roboto (Default)',
             'lipi-editor-font': 'default',
             'lipi-editor-font-label': 'JetBrains Mono (Default)',
+            'lipi-line-numbers': 'false', // NEW
             recents: []
         };
         
         this.initDOM();
         this.initTheme();
         this.initFonts(); 
+        this.initLineNumbers(); // NEW
         
         this.handleFeatureSupportUI();
         this.bindEvents();
@@ -98,6 +100,11 @@ class LipiApp {
             preserveDataToggle: document.getElementById('preserve-data-toggle'), 
             preserveDataDesc: document.getElementById('preserve-data-desc'),
             
+            // NEW: Editor Layout Elements
+            editorContainer: document.getElementById('editor-container'),
+            lineNumbersGutter: document.getElementById('line-numbers-gutter'),
+            lineNumbersToggle: document.getElementById('line-numbers-toggle'),
+            
             themeSelectBtn: document.getElementById('theme-select-btn'),
             themeSelectLabel: document.getElementById('theme-select-label'),
             themeDropdown: document.getElementById('theme-dropdown'),
@@ -141,6 +148,42 @@ class LipiApp {
             localStorage.setItem(key, value);
         }
     }
+
+    // --- NEW: Line Numbers Engine ---
+    initLineNumbers() {
+        const show = this.getSetting('lipi-line-numbers') === 'true';
+        this.elements.lineNumbersToggle.checked = show;
+        this.toggleLineNumbers(show);
+    }
+
+    toggleLineNumbers(show) {
+        if (show) {
+            this.elements.lineNumbersGutter.classList.remove('hidden');
+            // Force strict code-editor behavior to prevent visual misalignment
+            this.elements.mainEditor.style.whiteSpace = 'pre';
+            this.elements.mainEditor.style.overflowX = 'auto';
+            this.updateLineNumbers();
+        } else {
+            this.elements.lineNumbersGutter.classList.add('hidden');
+            // Revert to standard text-editor behavior
+            this.elements.mainEditor.style.whiteSpace = 'pre-wrap';
+            this.elements.mainEditor.style.overflowX = 'hidden';
+        }
+    }
+
+    updateLineNumbers() {
+        if (this.getSetting('lipi-line-numbers') !== 'true') return;
+        const val = this.elements.mainEditor.value || '';
+        const lines = val.split('\n').length;
+        const currentLines = this.elements.lineNumbersGutter.dataset.lines || 0;
+        
+        if (lines != currentLines) {
+            // Generate sequence: "1\n2\n3..."
+            this.elements.lineNumbersGutter.textContent = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+            this.elements.lineNumbersGutter.dataset.lines = lines;
+        }
+    }
+    // --------------------------------
 
     initTheme() {
         const savedTheme = this.getSetting('lipi-theme');
@@ -232,27 +275,21 @@ class LipiApp {
             this.elements.iconActionSaveAs.textContent = 'sim_card_download';
             
             if (this.elements.preserveDataDesc) {
-                // TEXT UPDATED HERE TOO
                 this.elements.preserveDataDesc.textContent = 'Save settings across restarts';
             }
         }
     }
 
     bindEvents() {
-        // ==============================================================
-        // NEW: Global Keyboard Shortcuts Engine (Cross OS)
-        // ==============================================================
         document.addEventListener('keydown', (e) => {
-            // Detect Mac vs Windows/Linux modifier
             const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
             const modifierKey = isMac ? e.metaKey : e.ctrlKey;
 
             if (modifierKey) {
                 const key = e.key.toLowerCase();
 
-                // Ctrl/Cmd + S -> Save (or Save As)
                 if (key === 's') {
-                    e.preventDefault(); // Stop native browser save dialog
+                    e.preventDefault(); 
                     if (this.activeFileId) {
                         if (e.shiftKey) {
                             this.saveFileAs();
@@ -261,26 +298,19 @@ class LipiApp {
                         }
                     }
                 } 
-                // Ctrl/Cmd + O -> Open File
                 else if (key === 'o') {
                     e.preventDefault();
                     this.openFile();
                 } 
-                // Ctrl/Cmd + N -> New File
                 else if (key === 'n') {
                     e.preventDefault();
                     this.createNewFile();
                 } 
-                // Ctrl/Cmd + Tab (or Up/Down Arrow) -> Cycle Files
                 else if (e.key === 'Tab' || key === 'arrowdown' || key === 'arrowup') {
                     if (this.openFiles.length > 1) {
-                        e.preventDefault(); // Note: Native Tab switching might still intercept on some browsers
+                        e.preventDefault(); 
                         const currentIndex = this.openFiles.findIndex(f => f.id === this.activeFileId);
-                        
-                        // Shift+Tab or ArrowUp moves backward, Tab or ArrowDown moves forward
                         let targetIndex = (e.shiftKey || key === 'arrowup') ? currentIndex - 1 : currentIndex + 1;
-                        
-                        // Loop around the array
                         if (targetIndex >= this.openFiles.length) targetIndex = 0;
                         if (targetIndex < 0) targetIndex = this.openFiles.length - 1;
                         
@@ -290,8 +320,8 @@ class LipiApp {
                 }
             }
         });
-        // ==============================================================
 
+        // Toggle Live Storage Migrations
         this.elements.preserveDataToggle.addEventListener('change', async (e) => {
             this.preserveData = e.target.checked;
             localStorage.setItem('lipi-preserve-data', this.preserveData);
@@ -302,6 +332,7 @@ class LipiApp {
                 localStorage.setItem('lipi-ui-font-label', this.memoryState['lipi-ui-font-label']);
                 localStorage.setItem('lipi-editor-font', this.memoryState['lipi-editor-font']);
                 localStorage.setItem('lipi-editor-font-label', this.memoryState['lipi-editor-font-label']);
+                localStorage.setItem('lipi-line-numbers', this.memoryState['lipi-line-numbers']); // NEW
 
                 if (this.db && this.memoryState.recents.length > 0) {
                     await new Promise(resolve => {
@@ -317,6 +348,7 @@ class LipiApp {
                 this.memoryState['lipi-ui-font-label'] = localStorage.getItem('lipi-ui-font-label') || 'Roboto (Default)';
                 this.memoryState['lipi-editor-font'] = localStorage.getItem('lipi-editor-font') || 'default';
                 this.memoryState['lipi-editor-font-label'] = localStorage.getItem('lipi-editor-font-label') || 'JetBrains Mono (Default)';
+                this.memoryState['lipi-line-numbers'] = localStorage.getItem('lipi-line-numbers') || 'false'; // NEW
 
                 if (this.db) {
                     this.memoryState.recents = await this.getDBRecents();
@@ -332,7 +364,15 @@ class LipiApp {
                 localStorage.removeItem('lipi-ui-font-label');
                 localStorage.removeItem('lipi-editor-font');
                 localStorage.removeItem('lipi-editor-font-label');
+                localStorage.removeItem('lipi-line-numbers'); // NEW
             }
+        });
+
+        // NEW: Line Numbers UI Toggle
+        this.elements.lineNumbersToggle.addEventListener('change', (e) => {
+            const show = e.target.checked;
+            this.setSetting('lipi-line-numbers', show.toString());
+            this.toggleLineNumbers(show);
         });
 
         const setupMenuKeyboardNav = (anchorBtn, menuEl) => {
@@ -593,6 +633,11 @@ class LipiApp {
             }
         });
 
+        // --- NEW: Scroll listener to perfectly sync the line numbers gutter ---
+        this.elements.mainEditor.addEventListener('scroll', () => {
+            this.elements.lineNumbersGutter.scrollTop = this.elements.mainEditor.scrollTop;
+        });
+
         this.elements.mainEditor.addEventListener('input', (e) => {
             if (this.activeFileId) {
                 const file = this.openFiles.find(f => f.id === this.activeFileId);
@@ -603,6 +648,8 @@ class LipiApp {
                         this.updateUnsavedUI();
                         this.updateSidebar();
                     }
+                    // Call the numbers updater whenever the user types
+                    this.updateLineNumbers();
                 }
             }
         });
@@ -1038,6 +1085,9 @@ class LipiApp {
         this.elements.settingsBtn.classList.remove('active');
         
         this.elements.mainEditor.value = file.content;
+        
+        // NEW: Ensure numbers are generated immediately upon switching
+        this.updateLineNumbers();
         this.updateUnsavedUI(); 
         this.elements.mainEditor.focus();
     }

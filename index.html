@@ -148,8 +148,12 @@
             </div>
         </div>
 
+        <!-- NEW: Editor Container with Line Numbers Gutter -->
         <div id="editor-view" class="editor-canvas hidden">
-            <textarea id="main-editor" class="body-large" spellcheck="false" placeholder="Start typing..."></textarea>
+            <div id="editor-container">
+                <div id="line-numbers-gutter" class="hidden">1</div>
+                <textarea id="main-editor" class="body-large" spellcheck="false" placeholder="Start typing..."></textarea>
+            </div>
         </div>
 
         <div id="settings-view" class="editor-canvas hidden">
@@ -162,7 +166,6 @@
                     <div class="setting-item" style="border-bottom: none; padding-bottom: 0;">
                         <div class="setting-info">
                             <span class="title-medium">Preserve Session Data</span>
-                            <!-- TEXT UPDATED HERE -->
                             <span id="preserve-data-desc" class="body-large" style="opacity: 0.7; font-size: 14px;">Save settings and recent files across restarts</span>
                         </div>
                         <label class="m3-switch" aria-label="Toggle data preservation">
@@ -193,6 +196,20 @@
                                 <button class="menu-item theme-option" data-theme-val="dark">Dark</button>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- NEW: Line Numbers Toggle -->
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="title-medium">Show Line Numbers</span>
+                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Display a line number gutter in the editor</span>
+                        </div>
+                        <label class="m3-switch" aria-label="Toggle line numbers">
+                            <input type="checkbox" id="line-numbers-toggle">
+                            <span class="m3-switch-track">
+                                <span class="m3-switch-thumb"></span>
+                            </span>
+                        </label>
                     </div>
 
                     <div class="setting-item">
