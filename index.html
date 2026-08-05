@@ -16,17 +16,32 @@
     <input type="file" id="fallback-file-input" style="display: none;" accept=".txt,.md,.html,.css,.js,.json">
 
     <div id="drawer-overlay" class="scrim hidden"></div>
-
     <div id="modal-overlay" class="scrim hidden"></div>
+
+    <!-- Save As Modal -->
     <div id="save-as-modal" class="m3-dialog hidden">
         <h3 class="title-large">Save As</h3>
         <div class="dialog-content">
             <input type="text" id="save-as-input" class="m3-text-input" placeholder="Enter file name..." autocomplete="off">
         </div>
-        <!-- NEW: Updated button classes for M3 personality -->
         <div class="dialog-actions">
             <button class="m3-btn m3-btn-text" id="modal-cancel-btn">Cancel</button>
             <button class="m3-btn m3-btn-filled" id="modal-save-btn">Save</button>
+        </div>
+    </div>
+
+    <!-- NEW: Unsaved Warning Modal -->
+    <div id="unsaved-modal" class="m3-dialog hidden">
+        <h3 class="title-large" style="color: var(--md-sys-color-on-surface);">Save Changes?</h3>
+        <div class="dialog-content">
+            <p id="unsaved-modal-message" class="body-large" style="margin: 0; color: var(--md-sys-color-outline);"></p>
+        </div>
+        <div class="dialog-actions" style="margin-top: 8px;">
+            <button class="m3-btn m3-btn-text" id="modal-unsaved-cancel-btn">Cancel</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="m3-btn m3-btn-text m3-btn-danger" id="modal-unsaved-discard-btn">Discard</button>
+                <button class="m3-btn m3-btn-filled" id="modal-unsaved-save-btn">Save</button>
+            </div>
         </div>
     </div>
 

@@ -1,9 +1,9 @@
 # Lipi
 
-style: update modal actions layout and apply M3 button variants
+feat: implement unsaved file safety net and confirmation modal
 
-- Changed `.dialog-actions` flex alignment to `space-between` to separate buttons
-- Introduced `.m3-btn` base class for standard Material 3 pill-shaped buttons
-- Added `.m3-btn-filled` variant for high-emphasis primary actions (Save)
-- Added `.m3-btn-text` variant for low-emphasis secondary actions (Cancel)
-- Updated `index.html` modal buttons to utilize the new M3 classes
+- Added a custom M3 warning modal when attempting to close an unsaved file
+- Implemented smart Save button logic in the modal: dynamically switches between "Save" and "Save As..." based on file handle state
+- Added "Discard" button with M3 Error coloring (`.m3-btn-danger`) for distinct visual hierarchy
+- Refactored `closeFile` logic to intercept the action, utilizing `performCloseFile` only upon confirmation
+- Implemented `beforeunload` global window listener to prevent accidental browser refreshes/closes with unsaved work

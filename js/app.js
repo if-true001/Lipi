@@ -17,6 +17,7 @@ class LipiApp {
         this.openFiles = []; 
         this.activeFileId = null; 
         this.db = null; 
+        this.fileToClose = null; // Tracks the file awaiting close confirmation
 
         if (this.supportsFileSystemAPI) {
             this.initDB().then(() => this.renderRecentFiles());
@@ -42,12 +43,20 @@ class LipiApp {
             iconActionSave: document.getElementById('icon-action-save'),
             iconActionSaveAs: document.getElementById('icon-action-save-as'),
             
-            // NEW: Modal Elements
             modalOverlay: document.getElementById('modal-overlay'),
+            
+            // Save As Modal
             saveAsModal: document.getElementById('save-as-modal'),
             saveAsInput: document.getElementById('save-as-input'),
             modalCancelBtn: document.getElementById('modal-cancel-btn'),
             modalSaveBtn: document.getElementById('modal-save-btn'),
+            
+            // NEW: Unsaved Modal
+            unsavedModal: document.getElementById('unsaved-modal'),
+            unsavedModalMessage: document.getElementById('unsaved-modal-message'),
+            modalUnsavedCancelBtn: document.getElementById('modal-unsaved-cancel-btn'),
+            modalUnsavedDiscardBtn: document.getElementById('modal-unsaved-discard-btn'),
+            modalUnsavedSaveBtn: document.getElementById('modal-unsaved-save-btn'),
             
             sidebar: document.getElementById('sidebar'),
             overlay: document.getElementById('drawer-overlay'),
@@ -113,12 +122,26 @@ class LipiApp {
             this.saveFileAs();
         });
 
-        // NEW: Modal Events
+        // Save As Modal Events
         this.elements.modalCancelBtn.addEventListener('click', () => this.closeSaveAsModal());
         this.elements.modalSaveBtn.addEventListener('click', () => this.confirmSaveAs());
         this.elements.saveAsInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') this.confirmSaveAs();
             if (e.key === 'Escape') this.closeSaveAsModal();
+        });
+
+        // NEW: Unsaved Modal Events
+        this.elements.modalUnsavedCancelBtn.addEventListener('click', () => this.closeUnsavedModal());
+        this.elements.modalUnsavedDiscardBtn.addEventListener('click', () => this.confirmDiscard());
+        this.elements.modalUnsavedSaveBtn.addEventListener('click', () => this.confirmSaveAndClose());
+
+        // NEW: Global Window Safety Net
+        window.addEventListener('beforeunload', (e) => {
+            const hasUnsaved = this.openFiles.some(f => f.isUnsaved);
+            if (hasUnsaved) {
+                e.preventDefault();
+                e.returnValue = ''; // Triggers native browser warning
+            }
         });
 
         this.elements.welcomeSidebarItem.addEventListener('click', () => this.activateWelcomeScreen());
@@ -261,14 +284,13 @@ class LipiApp {
         }
     }
 
-    // --- NEW: Custom Modal Handlers ---
+    // --- Modal Logic ---
     openSaveAsModal(fileName) {
         this.elements.saveAsInput.value = fileName;
         this.elements.modalOverlay.classList.add('active');
         this.elements.saveAsModal.classList.add('active');
         this.elements.saveAsInput.focus();
         
-        // Smart Selection: Highlight only the name, not the .txt
         const dotIndex = fileName.lastIndexOf('.');
         if (dotIndex > 0) {
             this.elements.saveAsInput.setSelectionRange(0, dotIndex);
@@ -293,12 +315,64 @@ class LipiApp {
         
         file.name = newName;
         this.elements.fileNameDisplay.textContent = file.name;
-        file.handle = null; // Sever handle for new download
+        file.handle = null; 
         
         this.closeSaveAsModal();
         this.fallbackSaveDownload(file);
     }
-    // ----------------------------------
+
+    // NEW: Unsaved Warning Modal Logic
+    openUnsavedModal(fileId) {
+        this.fileToClose = fileId;
+        const file = this.openFiles.find(f => f.id === fileId);
+        
+        this.elements.unsavedModalMessage.innerHTML = `Do you want to save the changes you made to <strong>${file.name}</strong>?<br><br>Your changes will be lost if you don't save them.`;
+        
+        // Smart Save Button Text
+        if (!file.handle && this.supportsFileSystemAPI) {
+            this.elements.modalUnsavedSaveBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 8px;">save_as</span> Save As...';
+        } else {
+            this.elements.modalUnsavedSaveBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 8px;">save</span> Save';
+        }
+
+        this.elements.modalOverlay.classList.add('active');
+        this.elements.unsavedModal.classList.add('active');
+    }
+
+    closeUnsavedModal() {
+        this.fileToClose = null;
+        this.elements.modalOverlay.classList.remove('active');
+        this.elements.unsavedModal.classList.remove('active');
+    }
+
+    confirmDiscard() {
+        const fileId = this.fileToClose;
+        this.closeUnsavedModal();
+        this.performCloseFile(fileId); // Bypasses the save check
+    }
+
+    async confirmSaveAndClose() {
+        const fileId = this.fileToClose;
+        const file = this.openFiles.find(f => f.id === fileId);
+        
+        // Temporarily switch to this file so UI logic runs correctly during save
+        if (this.activeFileId !== fileId) {
+            this.switchToEditor(fileId);
+        }
+
+        this.closeUnsavedModal();
+
+        if (!file.handle && this.supportsFileSystemAPI) {
+            await this.saveFileAs();
+        } else {
+            await this.saveCurrentFile();
+        }
+
+        // Only close if it successfully saved (user didn't cancel the OS dialog)
+        if (!file.isUnsaved) {
+            this.performCloseFile(fileId);
+        }
+    }
 
     switchView(viewName) {
         this.currentView = viewName;
@@ -412,7 +486,21 @@ class LipiApp {
         this.elements.mainEditor.focus();
     }
 
+    // NEW: Interceptor Logic
     closeFile(fileId) {
+        const file = this.openFiles.find(f => f.id === fileId);
+        if (!file) return;
+
+        if (file.isUnsaved) {
+            this.openUnsavedModal(fileId);
+            return; // Stops here, waits for user modal choice
+        }
+
+        this.performCloseFile(fileId);
+    }
+
+    // Execution Logic
+    performCloseFile(fileId) {
         const index = this.openFiles.findIndex(f => f.id === fileId);
         if (index > -1) {
             this.openFiles.splice(index, 1);
@@ -484,7 +572,6 @@ class LipiApp {
                 // User cancelled, do nothing
             }
         } else {
-            // NEW: Use Custom Modal instead of prompt()
             this.openSaveAsModal(file.name);
         }
     }
@@ -556,7 +643,7 @@ class LipiApp {
             li.addEventListener('click', (e) => {
                 if (e.target.closest('.close-btn')) {
                     e.stopPropagation();
-                    this.closeFile(file.id);
+                    this.closeFile(file.id); // Trigger interceptor
                 } else {
                     this.switchToEditor(file.id);
                     this.updateSidebar();

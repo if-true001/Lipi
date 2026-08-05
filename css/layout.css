@@ -114,7 +114,6 @@ body { display: flex; }
     background-color: rgba(0, 0, 0, 0.4); z-index: 90; display: none;
 }
 .scrim.active { display: block; }
-
 #modal-overlay { z-index: 290; } 
 
 .m3-dialog {
@@ -148,47 +147,26 @@ body { display: flex; }
     padding: 11px 15px; 
 }
 
-/* NEW: M3 Button Alignment and Styles */
 .dialog-actions { 
-    display: flex; 
-    justify-content: space-between; /* Spreads Cancel and Save to opposite sides */
-    gap: 8px; 
-    margin-top: 8px;
+    display: flex; justify-content: space-between; gap: 8px; margin-top: 8px;
 }
 
 .m3-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 40px;
-    padding: 0 24px;
-    border-radius: 20px; /* Perfect pill shape */
-    font-family: inherit;
-    font-size: var(--md-sys-typescale-label-large-size);
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 40px; padding: 0 24px; border-radius: 20px; font-family: inherit;
+    font-size: var(--md-sys-typescale-label-large-size); font-weight: 500;
+    border: none; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s;
 }
 
-.m3-btn-text {
-    background: transparent;
-    color: var(--md-sys-color-primary);
-}
+.m3-btn-text { background: transparent; color: var(--md-sys-color-primary); }
+.m3-btn-text:hover { background-color: rgba(0, 104, 116, 0.08); }
 
-.m3-btn-text:hover {
-    background-color: rgba(0, 104, 116, 0.08); /* Subtle primary color overlay */
-}
+.m3-btn-filled { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.m3-btn-filled:hover { background-color: #005a64; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 
-.m3-btn-filled {
-    background-color: var(--md-sys-color-primary);
-    color: var(--md-sys-color-on-primary);
-}
-
-.m3-btn-filled:hover {
-    background-color: #005a64; /* Slightly darker shade on hover */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
+/* NEW: Danger button styling for destructive actions */
+.m3-btn-danger { color: #ba1a1a; }
+.m3-btn-danger:hover { background-color: rgba(186, 26, 26, 0.08); }
 
 /* =========================================
    Desktop Layout Overrides (> 900px)
