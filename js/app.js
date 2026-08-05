@@ -17,7 +17,7 @@ class LipiApp {
         this.openFiles = []; 
         this.activeFileId = null; 
         this.db = null; 
-        this.fileToClose = null; // Tracks the file awaiting close confirmation
+        this.fileToClose = null; 
 
         if (this.supportsFileSystemAPI) {
             this.initDB().then(() => this.renderRecentFiles());
@@ -45,13 +45,11 @@ class LipiApp {
             
             modalOverlay: document.getElementById('modal-overlay'),
             
-            // Save As Modal
             saveAsModal: document.getElementById('save-as-modal'),
             saveAsInput: document.getElementById('save-as-input'),
             modalCancelBtn: document.getElementById('modal-cancel-btn'),
             modalSaveBtn: document.getElementById('modal-save-btn'),
             
-            // NEW: Unsaved Modal
             unsavedModal: document.getElementById('unsaved-modal'),
             unsavedModalMessage: document.getElementById('unsaved-modal-message'),
             modalUnsavedCancelBtn: document.getElementById('modal-unsaved-cancel-btn'),
@@ -122,7 +120,6 @@ class LipiApp {
             this.saveFileAs();
         });
 
-        // Save As Modal Events
         this.elements.modalCancelBtn.addEventListener('click', () => this.closeSaveAsModal());
         this.elements.modalSaveBtn.addEventListener('click', () => this.confirmSaveAs());
         this.elements.saveAsInput.addEventListener('keydown', (e) => {
@@ -130,17 +127,15 @@ class LipiApp {
             if (e.key === 'Escape') this.closeSaveAsModal();
         });
 
-        // NEW: Unsaved Modal Events
         this.elements.modalUnsavedCancelBtn.addEventListener('click', () => this.closeUnsavedModal());
         this.elements.modalUnsavedDiscardBtn.addEventListener('click', () => this.confirmDiscard());
         this.elements.modalUnsavedSaveBtn.addEventListener('click', () => this.confirmSaveAndClose());
 
-        // NEW: Global Window Safety Net
         window.addEventListener('beforeunload', (e) => {
             const hasUnsaved = this.openFiles.some(f => f.isUnsaved);
             if (hasUnsaved) {
                 e.preventDefault();
-                e.returnValue = ''; // Triggers native browser warning
+                e.returnValue = ''; 
             }
         });
 
@@ -193,6 +188,8 @@ class LipiApp {
         });
     }
 
+    // --- NEW: Memory Management Logic ---
+
     async initDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open('LipiDB', 1);
@@ -212,8 +209,41 @@ class LipiApp {
 
     async saveToRecent(name, handle) {
         if (!this.db || !handle || !this.supportsFileSystemAPI) return; 
-        const tx = this.db.transaction('recents', 'readwrite');
-        tx.objectStore('recents').put({ name, handle, timestamp: Date.now() });
+        
+        // Save the new file entry
+        await new Promise(resolve => {
+            const tx = this.db.transaction('recents', 'readwrite');
+            tx.objectStore('recents').put({ name, handle, timestamp: Date.now() });
+            tx.oncomplete = resolve;
+        });
+
+        // Query the database to enforce the 6-file limit
+        const recents = await new Promise(resolve => {
+            const tx = this.db.transaction('recents', 'readonly');
+            const req = tx.objectStore('recents').getAll();
+            req.onsuccess = () => resolve(req.result.sort((a,b) => b.timestamp - a.timestamp));
+        });
+
+        // Delete the oldest files if limit is exceeded
+        if (recents.length > 6) {
+            const toDelete = recents.slice(6);
+            await new Promise(resolve => {
+                const tx = this.db.transaction('recents', 'readwrite');
+                toDelete.forEach(item => tx.objectStore('recents').delete(item.name));
+                tx.oncomplete = resolve;
+            });
+        }
+
+        this.renderRecentFiles();
+    }
+
+    async removeRecentFile(name) {
+        if (!this.db || !this.supportsFileSystemAPI) return;
+        await new Promise(resolve => {
+            const tx = this.db.transaction('recents', 'readwrite');
+            tx.objectStore('recents').delete(name);
+            tx.oncomplete = resolve;
+        });
         this.renderRecentFiles();
     }
 
@@ -237,22 +267,56 @@ class LipiApp {
         }
 
         recents.forEach(fileData => {
+            // Render Welcome Screen Items with Remove buttons
+            const wrapper = document.createElement('div');
+            wrapper.className = 'recent-item-wrapper';
+
             const btn = document.createElement('button');
             btn.className = 'text-btn';
-            btn.innerHTML = `<span class="material-symbols-rounded">description</span> ${fileData.name}`;
+            btn.innerHTML = `<span class="material-symbols-rounded">description</span> <span class="file-name" style="max-width: 200px;">${fileData.name}</span>`;
             btn.onclick = () => this.openRecentFile(fileData);
-            this.elements.recentContainer.appendChild(btn);
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'icon-btn remove-recent-btn';
+            delBtn.innerHTML = `<span class="material-symbols-rounded" style="font-size: 18px;">close</span>`;
+            delBtn.setAttribute('aria-label', 'Remove from recents');
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.removeRecentFile(fileData.name);
+            };
+
+            wrapper.appendChild(btn);
+            wrapper.appendChild(delBtn);
+            this.elements.recentContainer.appendChild(wrapper);
+
+            // Render Dropdown Items with Remove buttons
+            const dropWrapper = document.createElement('div');
+            dropWrapper.className = 'dropdown-recent-item-wrapper';
 
             const dropBtn = document.createElement('button');
             dropBtn.className = 'menu-item';
-            dropBtn.innerHTML = `<span class="material-symbols-rounded">description</span> ${fileData.name}`;
+            dropBtn.innerHTML = `<span class="material-symbols-rounded">description</span> <span class="file-name" style="max-width: 120px;">${fileData.name}</span>`;
             dropBtn.onclick = () => {
                 this.toggleAddDropdown(false);
                 this.openRecentFile(fileData);
             };
-            this.elements.dropdownRecentList.appendChild(dropBtn);
+
+            const dropDelBtn = document.createElement('button');
+            dropDelBtn.className = 'icon-btn remove-recent-btn';
+            dropDelBtn.innerHTML = `<span class="material-symbols-rounded" style="font-size: 16px;">close</span>`;
+            dropDelBtn.setAttribute('aria-label', 'Remove from recents');
+            dropDelBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.removeRecentFile(fileData.name);
+            };
+
+            dropWrapper.appendChild(dropBtn);
+            dropWrapper.appendChild(dropDelBtn);
+            this.elements.dropdownRecentList.appendChild(dropWrapper);
         });
     }
+
+    // ------------------------------------------
 
     toggleDrawer(open) {
         if (window.innerWidth >= 900) return;
@@ -284,7 +348,6 @@ class LipiApp {
         }
     }
 
-    // --- Modal Logic ---
     openSaveAsModal(fileName) {
         this.elements.saveAsInput.value = fileName;
         this.elements.modalOverlay.classList.add('active');
@@ -321,14 +384,12 @@ class LipiApp {
         this.fallbackSaveDownload(file);
     }
 
-    // NEW: Unsaved Warning Modal Logic
     openUnsavedModal(fileId) {
         this.fileToClose = fileId;
         const file = this.openFiles.find(f => f.id === fileId);
         
         this.elements.unsavedModalMessage.innerHTML = `Do you want to save the changes you made to <strong>${file.name}</strong>?<br><br>Your changes will be lost if you don't save them.`;
         
-        // Smart Save Button Text
         if (!file.handle && this.supportsFileSystemAPI) {
             this.elements.modalUnsavedSaveBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 8px;">save_as</span> Save As...';
         } else {
@@ -348,14 +409,13 @@ class LipiApp {
     confirmDiscard() {
         const fileId = this.fileToClose;
         this.closeUnsavedModal();
-        this.performCloseFile(fileId); // Bypasses the save check
+        this.performCloseFile(fileId); 
     }
 
     async confirmSaveAndClose() {
         const fileId = this.fileToClose;
         const file = this.openFiles.find(f => f.id === fileId);
         
-        // Temporarily switch to this file so UI logic runs correctly during save
         if (this.activeFileId !== fileId) {
             this.switchToEditor(fileId);
         }
@@ -368,7 +428,6 @@ class LipiApp {
             await this.saveCurrentFile();
         }
 
-        // Only close if it successfully saved (user didn't cancel the OS dialog)
         if (!file.isUnsaved) {
             this.performCloseFile(fileId);
         }
@@ -486,20 +545,18 @@ class LipiApp {
         this.elements.mainEditor.focus();
     }
 
-    // NEW: Interceptor Logic
     closeFile(fileId) {
         const file = this.openFiles.find(f => f.id === fileId);
         if (!file) return;
 
         if (file.isUnsaved) {
             this.openUnsavedModal(fileId);
-            return; // Stops here, waits for user modal choice
+            return; 
         }
 
         this.performCloseFile(fileId);
     }
 
-    // Execution Logic
     performCloseFile(fileId) {
         const index = this.openFiles.findIndex(f => f.id === fileId);
         if (index > -1) {
@@ -643,7 +700,7 @@ class LipiApp {
             li.addEventListener('click', (e) => {
                 if (e.target.closest('.close-btn')) {
                     e.stopPropagation();
-                    this.closeFile(file.id); // Trigger interceptor
+                    this.closeFile(file.id); 
                 } else {
                     this.switchToEditor(file.id);
                     this.updateSidebar();

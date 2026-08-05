@@ -164,7 +164,6 @@ body { display: flex; }
 .m3-btn-filled { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
 .m3-btn-filled:hover { background-color: #005a64; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 
-/* NEW: Danger button styling for destructive actions */
 .m3-btn-danger { color: #ba1a1a; }
 .m3-btn-danger:hover { background-color: rgba(186, 26, 26, 0.08); }
 
@@ -187,10 +186,48 @@ body { display: flex; }
 .welcome-content { margin: auto; padding: 24px; max-width: 800px; width: 100%; }
 .action-columns { display: flex; flex-direction: column; gap: 48px; }
 .action-group { display: flex; flex-direction: column; gap: 12px; }
-.text-btn { display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--md-sys-color-primary); font-family: inherit; cursor: pointer; padding: 8px 0; width: fit-content; }
+
+.text-btn { 
+    display: flex; align-items: center; gap: 12px; background: transparent; 
+    border: none; color: var(--md-sys-color-primary); font-family: inherit; 
+    cursor: pointer; padding: 8px 0; width: fit-content; 
+}
 @media (min-width: 600px) { .action-columns { flex-direction: row; gap: 80px; } }
 
 #main-editor {
     flex-grow: 1; height: 100%; width: 100%; border: none; resize: none; outline: none; padding: 24px;
     font-family: 'Courier New', Courier, monospace; background: transparent; color: var(--md-sys-color-on-surface); overflow-y: auto; box-sizing: border-box;
+}
+
+/* NEW: Memory Management UI */
+.recent-item-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 320px;
+}
+
+.dropdown-recent-item-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 8px;
+}
+
+.dropdown-recent-item-wrapper .menu-item {
+    flex-grow: 1;
+    width: auto;
+    padding-right: 8px;
+}
+
+.remove-recent-btn {
+    width: 32px;
+    height: 32px;
+    opacity: 0.4;
+}
+
+.remove-recent-btn:hover {
+    opacity: 1;
+    background-color: var(--md-sys-color-surface-container-high);
 }
