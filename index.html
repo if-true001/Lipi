@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Roboto:wght@400;500;700&family=Supermercado+One&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+    
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/layout.css">
 </head>
@@ -18,7 +21,6 @@
     <div id="drawer-overlay" class="scrim hidden"></div>
     <div id="modal-overlay" class="scrim hidden"></div>
     
-    <!-- NEW: Status Bar Bottom Sheet (Mobile Only) -->
     <div id="status-sheet-scrim" class="scrim hidden"></div>
     <div id="status-bottom-sheet" class="m3-bottom-sheet hidden">
         <div class="sheet-drag-handle"></div>
@@ -26,9 +28,65 @@
         <div class="sheet-content">
             <div class="sheet-item"><span>Cursor</span><span id="sheet-cursor">Ln 1, Col 1</span></div>
             <div class="sheet-item"><span>Length</span><span id="sheet-length">0 chars</span></div>
-            <div class="sheet-item"><span>Language</span><span id="sheet-language">Plain Text</span></div>
+            <div class="sheet-item" id="sheet-language-wrapper"><span>Language</span><span id="sheet-language">Plain Text</span></div>
             <div class="sheet-item"><span>Line Endings</span><span id="sheet-crlf">Unix (LF)</span></div>
             <div class="sheet-item"><span>Encoding</span><span id="sheet-encoding">UTF-8</span></div>
+        </div>
+    </div>
+
+    <div id="licenses-modal" class="m3-dialog hidden">
+        <h3 class="title-large">Open Source Licenses</h3>
+        <div class="dialog-content">
+            
+            <div style="margin-bottom: 24px;">
+                <h4 class="title-medium" style="margin: 0 0 4px 0; color: var(--md-sys-color-on-surface);">Lipi</h4>
+                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; font-weight: 500;">MIT License &copy; 2026 Bibu S.K</p>
+                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
+                    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+                </p>
+                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
+                    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+                </p>
+                <p style="margin: 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
+                    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="title-medium" style="margin: 0 0 4px 0; color: var(--md-sys-color-on-surface);">Marked.js</h4>
+                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; font-weight: 500; line-height: 1.5;">
+                    MIT License<br>
+                    Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/)<br>
+                    Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)
+                </p>
+                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
+                    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+                </p>
+                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
+                    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+                </p>
+                <p style="margin: 0 0 16px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
+                    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+                </p>
+
+                <p style="margin: 0 0 4px 0; color: var(--md-sys-color-on-surface); font-size: 14px; font-weight: 500;">Markdown License</p>
+                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; font-weight: 500;">Copyright &copy; 2004, John Gruber (http://daringfireball.net/)</p>
+                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
+                    Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+                </p>
+                <ul style="margin: 0 0 8px 0; padding-left: 20px; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
+                    <li style="margin-bottom: 4px;">Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.</li>
+                    <li style="margin-bottom: 4px;">Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.</li>
+                    <li style="margin-bottom: 4px;">Neither the name “Markdown” nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.</li>
+                </ul>
+                <p style="margin: 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
+                    This software is provided by the copyright holders and contributors “as is” and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the copyright owner or contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
+                </p>
+            </div>
+
+        </div>
+        <div class="dialog-actions">
+            <button class="m3-btn m3-btn-filled" id="close-licenses-btn">Close</button>
         </div>
     </div>
 
@@ -179,6 +237,10 @@
                 <textarea id="main-editor" class="body-large" spellcheck="false" placeholder="Start typing..."></textarea>
             </div>
             
+            <div id="markdown-preview" class="hidden">
+                <div id="markdown-preview-content"></div>
+            </div>
+            
             <div id="status-bar">
                 <div class="status-left">
                     <span class="status-item" id="status-cursor">Ln 1, Col 1</span>
@@ -189,7 +251,6 @@
                     <span class="status-item" id="status-crlf">Unix (LF)</span>
                     <span class="status-item" id="status-encoding">UTF-8</span>
                 </div>
-                <!-- NEW: Icon for bottom sheet toggle -->
                 <span class="material-symbols-rounded" id="status-expand-icon" style="display: none; font-size: 20px;">expand_less</span>
             </div>
         </div>
@@ -249,7 +310,6 @@
                         </label>
                     </div>
 
-                    <!-- NEW: Dynamic Mobile Toggle -->
                     <div class="setting-item" id="mobile-bar-setting" style="display: none;">
                         <div class="setting-info">
                             <span class="title-medium">Classic Status Bar</span>
@@ -307,6 +367,37 @@
                          <button class="m3-btn m3-btn-text" id="reset-fonts-btn" style="padding-left: 0;">
                              <span class="material-symbols-rounded" style="margin-right: 8px;">restart_alt</span> Reset Fonts to Defaults
                          </button>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3 class="label-large settings-card-title">About Lipi</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="title-medium">Version</span>
+                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">1.0.0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="title-medium">Source Code</span>
+                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">View the project on GitHub</span>
+                        </div>
+                        <a href="https://github.com/if-true001/Lipi" target="_blank" rel="noopener noreferrer" class="m3-btn m3-btn-text" style="padding: 0 16px; text-decoration: none;">
+                            <span class="material-symbols-rounded" style="margin-right: 8px; font-size: 18px;">open_in_new</span> GitHub
+                        </a>
+                    </div>
+
+                    <div class="setting-item" style="border-bottom: none; padding-bottom: 0;">
+                        <div class="setting-info">
+                            <span class="title-medium">Open Source Licenses</span>
+                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Third-party and app licenses</span>
+                        </div>
+                        <button class="m3-btn m3-btn-text" id="view-licenses-btn" style="padding: 0 16px;">
+                            View
+                        </button>
                     </div>
                 </div>
 

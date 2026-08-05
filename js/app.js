@@ -86,10 +86,16 @@ class LipiApp {
             modalUnsavedDiscardBtn: document.getElementById('modal-unsaved-discard-btn'),
             modalUnsavedSaveBtn: document.getElementById('modal-unsaved-save-btn'),
             
+            // NEW: Licenses Modal Elements
+            licensesModal: document.getElementById('licenses-modal'),
+            viewLicensesBtn: document.getElementById('view-licenses-btn'),
+            closeLicensesBtn: document.getElementById('close-licenses-btn'),
+            
             statusSheetScrim: document.getElementById('status-sheet-scrim'),
             statusBottomSheet: document.getElementById('status-bottom-sheet'),
             sheetCursor: document.getElementById('sheet-cursor'),
             sheetLength: document.getElementById('sheet-length'),
+            sheetLanguageWrapper: document.getElementById('sheet-language-wrapper'), // NEW
             sheetLanguage: document.getElementById('sheet-language'),
             sheetCrlf: document.getElementById('sheet-crlf'),
             sheetEncoding: document.getElementById('sheet-encoding'),
@@ -126,6 +132,10 @@ class LipiApp {
             editorContainer: document.getElementById('editor-container'),
             lineNumbersGutter: document.getElementById('line-numbers-gutter'),
             lineNumbersToggle: document.getElementById('line-numbers-toggle'),
+            
+            // NEW: Markdown Preview elements
+            markdownPreview: document.getElementById('markdown-preview'),
+            markdownPreviewContent: document.getElementById('markdown-preview-content'),
             
             statusBar: document.getElementById('status-bar'),
             statusCursor: document.getElementById('status-cursor'),
@@ -171,12 +181,34 @@ class LipiApp {
         }
     }
 
+    // --- NEW: Markdown Rendering Engine ---
+    refreshViewMode() {
+        if (!this.activeFileId) return;
+        const file = this.openFiles.find(f => f.id === this.activeFileId);
+        if (!file) return;
+
+        if (file.viewMode === 'preview') {
+            this.elements.editorContainer.classList.add('hidden');
+            this.elements.markdownPreview.classList.remove('hidden');
+            
+            // Execute the marked.js compiler!
+            this.elements.markdownPreviewContent.innerHTML = marked.parse(file.content);
+        } else {
+            this.elements.markdownPreview.classList.add('hidden');
+            this.elements.editorContainer.classList.remove('hidden');
+            this.elements.mainEditor.focus();
+        }
+        this.updateStatusBar();
+    }
+    // --------------------------------------
+
     updateStatusBar() {
         if (!this.activeFileId) return;
         const file = this.openFiles.find(f => f.id === this.activeFileId);
         if (!file) return;
 
-        const val = this.elements.mainEditor.value;
+        // Note: Length/Cursor always track raw file content even during preview mode
+        const val = file.content;
         const start = this.elements.mainEditor.selectionStart;
 
         const isNarrow = window.innerWidth <= 600;
@@ -192,8 +224,14 @@ class LipiApp {
         const charCompact = `${charCount} ch`;
 
         let ext = 'Plain Text';
+        let isMd = false;
         const name = file.name.toLowerCase();
-        if (name.endsWith('.md')) ext = 'Markdown';
+        
+        // FIXED: Markdown dynamically switches text based on viewMode
+        if (name.endsWith('.md')) {
+            isMd = true;
+            ext = file.viewMode === 'preview' ? 'Markdown (Preview)' : 'Markdown (Code)';
+        }
         else if (name.endsWith('.html') || name.endsWith('.htm')) ext = 'HTML';
         else if (name.endsWith('.css')) ext = 'CSS';
         else if (name.endsWith('.js')) ext = 'JavaScript';
@@ -205,20 +243,32 @@ class LipiApp {
         const lineEndCompact = lineEndFull.includes('CRLF') ? 'CRLF' : 'LF';
 
         this.elements.statusCursor.textContent = cursorText;
+        this.elements.statusLanguage.textContent = ext;
+        this.elements.sheetLanguage.textContent = ext;
+
+        // Make the language indicators look interactive when viewing a .md file
+        if (isMd) {
+            this.elements.statusLanguage.style.cursor = 'pointer';
+            this.elements.statusLanguage.style.textDecoration = 'underline';
+            this.elements.sheetLanguageWrapper.style.cursor = 'pointer';
+            this.elements.sheetLanguage.style.textDecoration = 'underline';
+        } else {
+            this.elements.statusLanguage.style.cursor = 'default';
+            this.elements.statusLanguage.style.textDecoration = 'none';
+            this.elements.sheetLanguageWrapper.style.cursor = 'default';
+            this.elements.sheetLanguage.style.textDecoration = 'none';
+        }
 
         if (useSheet) {
             this.elements.statusRightGroup.style.display = 'none';
             this.elements.statusExpandIcon.style.display = 'block';
             this.elements.statusBar.style.cursor = 'pointer';
             
-            // FIXED: Dynamically inject pill class to trigger CSS animation
             this.elements.statusBar.classList.add('pill-mode');
-            
             this.elements.statusLength.textContent = charCompact;
 
             this.elements.sheetCursor.textContent = cursorText;
             this.elements.sheetLength.textContent = charFull;
-            this.elements.sheetLanguage.textContent = ext;
             this.elements.sheetCrlf.textContent = lineEndFull;
             this.elements.sheetEncoding.textContent = 'UTF-8';
         } else {
@@ -226,12 +276,10 @@ class LipiApp {
             this.elements.statusExpandIcon.style.display = 'none';
             this.elements.statusBar.style.cursor = 'default';
             
-            // FIXED: Remove pill class safely to return to desktop bar
             this.elements.statusBar.classList.remove('pill-mode');
 
             this.elements.statusLength.textContent = isNarrow ? charCompact : charFull;
             this.elements.statusCrlf.textContent = isNarrow ? lineEndCompact : lineEndFull;
-            this.elements.statusLanguage.textContent = ext;
             this.elements.statusEncoding.textContent = 'UTF-8';
         }
     }
@@ -386,13 +434,41 @@ class LipiApp {
         }
     }
 
+    // --- NEW: Licenses Modal Open/Close Logic ---
+    openLicensesModal() {
+        this.elements.modalOverlay.classList.add('active');
+        this.elements.licensesModal.classList.add('active');
+    }
+
+    closeLicensesModal() {
+        this.elements.modalOverlay.classList.remove('active');
+        this.elements.licensesModal.classList.remove('active');
+    }
+    // --------------------------------------------
+
     bindEvents() {
         window.addEventListener('resize', () => { 
             if (window.innerWidth >= 900) this.toggleDrawer(false); 
             this.updateStatusBar();
         });
 
-        this.elements.statusBar.addEventListener('click', () => {
+        // --- NEW: Markdown View Mode Toggles ---
+        const toggleViewMode = (e) => {
+            e.stopPropagation(); // Stop the click from firing other sheet actions
+            const file = this.openFiles.find(f => f.id === this.activeFileId);
+            if (file && file.name.toLowerCase().endsWith('.md')) {
+                file.viewMode = file.viewMode === 'preview' ? 'code' : 'preview';
+                this.refreshViewMode();
+            }
+        };
+
+        this.elements.statusLanguage.addEventListener('click', toggleViewMode);
+        this.elements.sheetLanguageWrapper.addEventListener('click', toggleViewMode);
+        // ---------------------------------------
+
+        this.elements.statusBar.addEventListener('click', (e) => {
+            // Prevent opening the sheet if we just clicked the language toggle
+            if (e.target === this.elements.statusLanguage) return; 
             const useSheet = this.isMobile && this.getSetting('lipi-mobile-bar-force') !== 'true';
             if (useSheet) this.openStatusSheet();
         });
@@ -750,6 +826,9 @@ class LipiApp {
         this.elements.modalUnsavedCancelBtn.addEventListener('click', () => this.closeUnsavedModal());
         this.elements.modalUnsavedDiscardBtn.addEventListener('click', () => this.confirmDiscard());
         this.elements.modalUnsavedSaveBtn.addEventListener('click', () => this.confirmSaveAndClose());
+
+        this.elements.viewLicensesBtn.addEventListener('click', () => this.openLicensesModal());
+        this.elements.closeLicensesBtn.addEventListener('click', () => this.closeLicensesModal());
 
         window.addEventListener('beforeunload', (e) => {
             const hasUnsaved = this.openFiles.some(f => f.isUnsaved);
@@ -1199,10 +1278,14 @@ class LipiApp {
         file.name = newName;
         file.handle = null;
         file.isUnsaved = true;
+
+        if (newName.toLowerCase().endsWith('.md') && !file.viewMode) {
+            file.viewMode = 'preview';
+        }
         
         this.updateUnsavedUI();
         this.updateSidebar();
-        this.updateStatusBar(); 
+        this.refreshViewMode(); 
     }
 
     createNewFile() {
@@ -1250,6 +1333,7 @@ class LipiApp {
         }
     }
 
+    // FIXED: Dynamically inject preview viewMode for Markdown files
     loadFileIntoEditor(fileName, content, fileHandle, forcedLineEnding = null) {
         const fileId = `file-${Date.now()}`;
         
@@ -1258,13 +1342,16 @@ class LipiApp {
             lineEnding = content.includes('\r\n') ? 'Windows (CRLF)' : 'Unix (LF)';
         }
 
+        const isMd = fileName.toLowerCase().endsWith('.md');
+
         this.openFiles.push({ 
             id: fileId, 
             name: fileName, 
             content: content, 
             handle: fileHandle, 
             isUnsaved: false,
-            lineEnding: lineEnding 
+            lineEnding: lineEnding,
+            viewMode: isMd ? 'preview' : 'code' // NEW
         });
         
         this.switchToEditor(fileId);
@@ -1289,10 +1376,11 @@ class LipiApp {
         
         this.elements.mainEditor.value = file.content;
         
+        this.refreshViewMode(); // NEW: Triggers markdown parser if needed
+        
         this.updateLineNumbers();
         this.updateStatusBar(); 
         this.updateUnsavedUI(); 
-        this.elements.mainEditor.focus();
     }
 
     closeFile(fileId) {

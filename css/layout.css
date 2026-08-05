@@ -179,6 +179,13 @@ body { display: flex; }
 
 .m3-dialog h3 { margin: 0; color: var(--md-sys-color-on-surface); transition: color 0.3s ease; }
 
+/* FIXED: Allow modals to scroll safely if content like licenses gets too long */
+.dialog-content {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 8px; /* Room for scrollbar */
+}
+
 .m3-text-input {
     width: 100%; padding: 12px 16px; border-radius: 8px;
     border: 1px solid var(--md-sys-color-outline);
@@ -256,6 +263,7 @@ body { display: flex; }
 #editor-container {
     display: flex; flex-direction: row; flex-grow: 1; width: 100%; overflow: hidden;
 }
+#editor-container.hidden { display: none !important; }
 
 #line-numbers-gutter {
     padding: 24px 16px;
@@ -274,9 +282,7 @@ body { display: flex; }
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-#line-numbers-gutter.hidden {
-    display: none !important;
-}
+#line-numbers-gutter.hidden { display: none !important; }
 
 #main-editor {
     flex-grow: 1; height: 100%; width: 100%; border: none; resize: none; outline: none; padding: 24px;
@@ -288,6 +294,84 @@ body { display: flex; }
 }
 
 #main-editor::placeholder { font-family: inherit; opacity: 0.6; }
+
+/* FIXED: Reverted headings to neutral document styling, repurposed primary color for inline code */
+#markdown-preview {
+    flex-grow: 1; height: 100%; width: 100%; padding: 32px 24px;
+    overflow-y: auto; box-sizing: border-box;
+    color: var(--md-sys-color-on-surface);
+    background-color: transparent;
+    font-family: var(--md-sys-typescale-display-large-font);
+    line-height: 1.6;
+}
+#markdown-preview.hidden { display: none !important; }
+
+#markdown-preview-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+#markdown-preview-content h1, 
+#markdown-preview-content h2, 
+#markdown-preview-content h3, 
+#markdown-preview-content h4 {
+    color: var(--md-sys-color-on-surface); /* Neutral Document Feel */
+    margin-top: 32px; margin-bottom: 16px; font-weight: 600;
+}
+#markdown-preview-content h1 { font-size: 36px; border-bottom: 1px solid var(--md-sys-color-surface-container-highest); padding-bottom: 8px; }
+#markdown-preview-content h2 { font-size: 28px; }
+#markdown-preview-content p { margin-bottom: 16px; }
+
+/* NEW: Beautiful Inline Code highlighting using Primary Brand Accent */
+#markdown-preview-content code { 
+    font-family: var(--editor-font-family);
+    background-color: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-primary); 
+    padding: 3px 6px; 
+    border-radius: 6px; 
+    font-size: 0.85em;
+    border: 1px solid var(--md-sys-color-surface-container-highest);
+}
+
+/* Pre block distinct styling */
+#markdown-preview-content pre {
+    background-color: var(--md-sys-color-surface-container-highest);
+    padding: 16px; border-radius: 12px; overflow-x: auto;
+    margin-bottom: 16px;
+    border: 1px solid var(--md-sys-color-surface-container-high);
+}
+#markdown-preview-content pre code { 
+    background-color: transparent; 
+    padding: 0; 
+    color: var(--md-sys-color-on-surface); 
+    border: none;
+}
+
+#markdown-preview-content blockquote {
+    border-left: 4px solid var(--md-sys-color-primary);
+    margin: 0 0 16px 0; padding-left: 16px; color: var(--md-sys-color-outline);
+    font-style: italic;
+}
+#markdown-preview-content a { color: var(--md-sys-color-primary); text-decoration: none; }
+#markdown-preview-content a:hover { text-decoration: underline; }
+#markdown-preview-content img { max-width: 100%; border-radius: 12px; margin-bottom: 16px; }
+#markdown-preview-content ul, 
+#markdown-preview-content ol { margin-bottom: 16px; padding-left: 24px; }
+
+/* NEW: Table Support */
+#markdown-preview-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 16px;
+}
+#markdown-preview-content th, 
+#markdown-preview-content td {
+    border: 1px solid var(--md-sys-color-surface-container-highest);
+    padding: 8px 12px;
+}
+#markdown-preview-content th {
+    background-color: var(--md-sys-color-surface-container-high);
+}
+
 
 #status-bar {
     display: flex; align-items: center; justify-content: space-between;
@@ -301,7 +385,6 @@ body { display: flex; }
     overflow: hidden;
 }
 
-/* FIXED: Changed to primary brand color and removed box-shadow */
 #status-bar.pill-mode {
     position: absolute;
     bottom: 16px;
@@ -322,7 +405,6 @@ body { display: flex; }
 .status-item { cursor: default; transition: opacity 0.2s ease; }
 .status-item:hover { opacity: 1; }
 
-/* In pill mode, the content sits against a dark background, so reset opacity to 1 for crisp legibility */
 #status-bar.pill-mode .status-left, 
 #status-bar.pill-mode .status-right {
     opacity: 1;
