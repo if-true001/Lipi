@@ -1,10 +1,9 @@
 # Lipi
 
-feat: implement togglable line number gutter synchronized with editor
+style: implement unified custom cross-device scrollbars
 
-- Added `#editor-container` and `#line-numbers-gutter` to layout DOM
-- Synchronized `font-size`, `line-height`, `font-family`, and `padding` to guarantee perfect vertical alignment
-- Implemented `scroll` and `input` event listeners to dynamically generate line numbers and sync scrolling
-- Added "Show Line Numbers" toggle to the Settings -> Appearance card
-- Added memory state and live migration support for `lipi-line-numbers`
-- Implemented dynamic `white-space` toggling to enforce standard code-editor line counting when enabled
+- Applied global `scrollbar-width: thin` and `scrollbar-color` for Firefox support
+- Implemented `::-webkit-scrollbar` suite for Chrome/Edge/Safari to override native OS scrollbars
+- Removed scroll arrows using `::-webkit-scrollbar-button { display: none; }`
+- Used `border: solid transparent` and `background-clip: padding-box` trick to create a narrow scrollbar that visually enlarges on `:hover` and `:active`
+- Linked scrollbar colors to M3 CSS variables (`--md-sys-color-outline` and `--md-sys-color-primary`) for native dark mode adaptability
