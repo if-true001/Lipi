@@ -18,6 +18,9 @@ class LipiApp {
         this.activeFileId = null; 
         this.db = null; 
         this.fileToClose = null; 
+        
+        // Context Menu State
+        this.contextMenuTargetId = null;
 
         if (this.supportsFileSystemAPI) {
             this.initDB().then(() => this.renderRecentFiles());
@@ -56,6 +59,12 @@ class LipiApp {
             modalUnsavedDiscardBtn: document.getElementById('modal-unsaved-discard-btn'),
             modalUnsavedSaveBtn: document.getElementById('modal-unsaved-save-btn'),
             
+            // NEW: Context Menu Elements
+            contextMenu: document.getElementById('file-context-menu'),
+            ctxOpen: document.getElementById('ctx-open'),
+            ctxRename: document.getElementById('ctx-rename'),
+            ctxClose: document.getElementById('ctx-close'),
+            
             sidebar: document.getElementById('sidebar'),
             overlay: document.getElementById('drawer-overlay'),
             openFilesList: document.getElementById('open-files-list'),
@@ -85,6 +94,60 @@ class LipiApp {
     }
 
     bindEvents() {
+        // --- NEW: Global Right-Click Management ---
+        document.addEventListener('contextmenu', (e) => {
+            // Allow native menu in text editor and inputs
+            if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]')) {
+                return;
+            }
+
+            e.preventDefault(); // Block native menu everywhere else
+
+            // Check if right-clicked on a sidebar file
+            const drawerItem = e.target.closest('.drawer-item:not(#welcome-sidebar-item):not(#settings-btn)');
+            if (drawerItem) {
+                const fileId = drawerItem.dataset.id;
+                this.showContextMenu(e.clientX, e.clientY, fileId);
+            } else {
+                this.hideContextMenu();
+            }
+        });
+
+        // Hide context menu on normal click
+        document.addEventListener('click', (e) => {
+            this.hideContextMenu();
+            
+            if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) {
+                this.toggleAddDropdown(false);
+            }
+            if (this.isSaveDropdownOpen && !this.elements.saveDropdown.contains(e.target)) {
+                this.toggleSaveDropdown(false);
+            }
+        });
+
+        // Context Menu Actions
+        this.elements.ctxOpen.addEventListener('click', () => {
+            if (this.contextMenuTargetId) this.switchToEditor(this.contextMenuTargetId);
+            this.hideContextMenu();
+            this.toggleDrawer(false);
+        });
+
+        this.elements.ctxRename.addEventListener('click', () => {
+            if (this.contextMenuTargetId) {
+                this.switchToEditor(this.contextMenuTargetId);
+                // Simulate a click on the title to edit
+                setTimeout(() => this.elements.fileNameDisplay.focus(), 50);
+            }
+            this.hideContextMenu();
+            this.toggleDrawer(false);
+        });
+
+        this.elements.ctxClose.addEventListener('click', () => {
+            if (this.contextMenuTargetId) this.closeFile(this.contextMenuTargetId);
+            this.hideContextMenu();
+        });
+        // ------------------------------------------
+
         this.elements.menuBtn.addEventListener('click', () => this.toggleDrawer(true));
         this.elements.overlay.addEventListener('click', () => this.toggleDrawer(false));
         window.addEventListener('resize', () => { if (window.innerWidth >= 900) this.toggleDrawer(false); });
@@ -99,15 +162,6 @@ class LipiApp {
             e.stopPropagation();
             this.toggleSaveDropdown(!this.isSaveDropdownOpen);
             this.toggleAddDropdown(false); 
-        });
-
-        document.addEventListener('click', (e) => {
-            if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) {
-                this.toggleAddDropdown(false);
-            }
-            if (this.isSaveDropdownOpen && !this.elements.saveDropdown.contains(e.target)) {
-                this.toggleSaveDropdown(false);
-            }
         });
 
         this.elements.dropdownActionSave.addEventListener('click', () => {
@@ -188,7 +242,30 @@ class LipiApp {
         });
     }
 
-    // --- NEW: Memory Management Logic ---
+    // --- Custom Context Menu Logic ---
+    showContextMenu(x, y, fileId) {
+        this.contextMenuTargetId = fileId;
+        
+        // Prevent menu from going off-screen
+        const menuWidth = 180; 
+        const menuHeight = 150;
+        
+        let adjustedX = x;
+        let adjustedY = y;
+        
+        if (x + menuWidth > window.innerWidth) adjustedX = window.innerWidth - menuWidth - 10;
+        if (y + menuHeight > window.innerHeight) adjustedY = window.innerHeight - menuHeight - 10;
+
+        this.elements.contextMenu.style.left = `${adjustedX}px`;
+        this.elements.contextMenu.style.top = `${adjustedY}px`;
+        this.elements.contextMenu.classList.add('active');
+    }
+
+    hideContextMenu() {
+        this.contextMenuTargetId = null;
+        this.elements.contextMenu.classList.remove('active');
+    }
+    // ---------------------------------
 
     async initDB() {
         return new Promise((resolve, reject) => {
@@ -210,21 +287,18 @@ class LipiApp {
     async saveToRecent(name, handle) {
         if (!this.db || !handle || !this.supportsFileSystemAPI) return; 
         
-        // Save the new file entry
         await new Promise(resolve => {
             const tx = this.db.transaction('recents', 'readwrite');
             tx.objectStore('recents').put({ name, handle, timestamp: Date.now() });
             tx.oncomplete = resolve;
         });
 
-        // Query the database to enforce the 6-file limit
         const recents = await new Promise(resolve => {
             const tx = this.db.transaction('recents', 'readonly');
             const req = tx.objectStore('recents').getAll();
             req.onsuccess = () => resolve(req.result.sort((a,b) => b.timestamp - a.timestamp));
         });
 
-        // Delete the oldest files if limit is exceeded
         if (recents.length > 6) {
             const toDelete = recents.slice(6);
             await new Promise(resolve => {
@@ -267,7 +341,6 @@ class LipiApp {
         }
 
         recents.forEach(fileData => {
-            // Render Welcome Screen Items with Remove buttons
             const wrapper = document.createElement('div');
             wrapper.className = 'recent-item-wrapper';
 
@@ -289,7 +362,6 @@ class LipiApp {
             wrapper.appendChild(delBtn);
             this.elements.recentContainer.appendChild(wrapper);
 
-            // Render Dropdown Items with Remove buttons
             const dropWrapper = document.createElement('div');
             dropWrapper.className = 'dropdown-recent-item-wrapper';
 
@@ -315,8 +387,6 @@ class LipiApp {
             this.elements.dropdownRecentList.appendChild(dropWrapper);
         });
     }
-
-    // ------------------------------------------
 
     toggleDrawer(open) {
         if (window.innerWidth >= 900) return;
@@ -684,6 +754,9 @@ class LipiApp {
         this.openFiles.forEach(file => {
             const li = document.createElement('li');
             li.className = `drawer-item ${file.id === this.activeFileId ? 'active' : ''}`;
+            
+            // NEW: Added data-id for Context Menu tracking
+            li.dataset.id = file.id;
             
             const unsavedDot = file.isUnsaved ? `<span style="color: var(--md-sys-color-primary); font-size: 14px;">●</span>` : '';
             

@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    <!-- NEW: Unsaved Warning Modal -->
+    <!-- Unsaved Warning Modal -->
     <div id="unsaved-modal" class="m3-dialog hidden">
         <h3 class="title-large" style="color: var(--md-sys-color-on-surface);">Save Changes?</h3>
         <div class="dialog-content">
@@ -43,6 +43,14 @@
                 <button class="m3-btn m3-btn-filled" id="modal-unsaved-save-btn">Save</button>
             </div>
         </div>
+    </div>
+
+    <!-- NEW: Custom Context Menu -->
+    <div id="file-context-menu" class="custom-context-menu">
+        <button class="menu-item" id="ctx-open"><span class="material-symbols-rounded">open_in_new</span> Open</button>
+        <button class="menu-item" id="ctx-rename"><span class="material-symbols-rounded">edit</span> Rename</button>
+        <div class="menu-divider"></div>
+        <button class="menu-item m3-btn-danger" id="ctx-close"><span class="material-symbols-rounded">close</span> Close File</button>
     </div>
 
     <aside id="sidebar" class="md-drawer">

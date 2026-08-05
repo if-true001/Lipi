@@ -1,9 +1,10 @@
 # Lipi
 
-feat: implement recent files memory management and cleanup
+feat: implement native UI text selection blocking and custom context menu
 
-- Implemented a strict 6-file limit for the IndexedDB Recent Files storage
-- Upgraded `saveToRecent` to automatically prune the oldest files when the limit is exceeded
-- Added `removeRecentFile` logic to explicitly delete specific files from history
-- Injected individual "remove" (`close`) icon buttons for recent files in both the Welcome View and Dropdown
-- Added `.recent-item-wrapper` flexbox CSS to smoothly align files and their corresponding delete buttons
+- Applied global `user-select: none` to `body` to prevent accidental UI highlighting
+- Overrode `user-select` to `text` for `textarea`, `input`, and `contenteditable` elements
+- Intercepted global `contextmenu` event to block the default browser right-click menu on all UI elements
+- Kept native right-click menu active inside the main text editor for clipboard/spellcheck access
+- Implemented a custom M3 Context Menu for sidebar files (Open, Rename, Close)
+- Updated sidebar rendering to include `data-id` attributes for context menu targeting
