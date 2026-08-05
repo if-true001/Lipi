@@ -245,7 +245,6 @@ body { display: flex; }
 .editor-canvas.active { display: flex; flex-direction: column; }
 #welcome-view, #settings-view { overflow-y: auto; }
 
-/* FIXED: Allow floating elements over the editor view securely */
 #editor-view { overflow: hidden; position: relative; }
 
 .welcome-content { margin: auto; padding: 24px; max-width: 800px; width: 100%; }
@@ -290,7 +289,6 @@ body { display: flex; }
 
 #main-editor::placeholder { font-family: inherit; opacity: 0.6; }
 
-/* FIXED: Seamless morphing animations for the status bar */
 #status-bar {
     display: flex; align-items: center; justify-content: space-between;
     height: 28px; padding: 0 16px; flex-shrink: 0;
@@ -303,7 +301,7 @@ body { display: flex; }
     overflow: hidden;
 }
 
-/* FIXED: M3 Floating Pill style for Mobile Status */
+/* FIXED: Changed to primary brand color and removed box-shadow */
 #status-bar.pill-mode {
     position: absolute;
     bottom: 16px;
@@ -312,9 +310,10 @@ body { display: flex; }
     width: fit-content;
     height: 40px;
     border-radius: var(--md-sys-shape-corner-full);
-    background-color: var(--md-sys-color-surface-container-highest);
+    background-color: var(--md-sys-color-primary); 
+    color: var(--md-sys-color-on-primary); 
     border-top: none;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: none;
     gap: 8px; 
     padding: 0 20px;
 }
@@ -322,6 +321,12 @@ body { display: flex; }
 .status-left, .status-right { display: flex; gap: 24px; white-space: nowrap; opacity: 0.8; }
 .status-item { cursor: default; transition: opacity 0.2s ease; }
 .status-item:hover { opacity: 1; }
+
+/* In pill mode, the content sits against a dark background, so reset opacity to 1 for crisp legibility */
+#status-bar.pill-mode .status-left, 
+#status-bar.pill-mode .status-right {
+    opacity: 1;
+}
 
 .recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 320px; }
 .dropdown-recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; padding-right: 8px; }
@@ -349,7 +354,6 @@ body { display: flex; }
 }
 .setting-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
 
-/* FIXED: Prevent text and toggles from squishing on narrow screens */
 .setting-info { 
     display: flex; flex-direction: column; gap: 4px; 
     flex: 1; 
