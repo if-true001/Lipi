@@ -1,9 +1,9 @@
 # Lipi
 
-feat: implement WAI-ARIA keyboard navigation for custom theme dropdown
+refactor: implement universal WAI-ARIA keyboard navigation for all dropdowns
 
-- Added `keydown` listener to the Theme Select button to open the menu via `Enter`, `Space`, or `ArrowDown`
-- Implemented automatic focus trapping: opening the menu via keyboard instantly focuses the currently active theme option
-- Added `ArrowUp` and `ArrowDown` listeners to `.theme-option` items for seamless looping navigation
-- Added `Escape` key listener to abort selection and safely return focus to the main button
-- Updated option `click` (and `Enter`) logic to automatically restore focus to the main button after a selection is made
+- Abstracted theme-specific keyboard navigation into a reusable `setupMenuKeyboardNav` helper function
+- Applied the new keyboard engine to the Add Menu, Save Menu, and Theme Menu
+- Implemented smart element querying to dynamically handle injected "Recent Files"
+- Ensured keyboard navigation securely skips elements with `disabled` attributes or `.disabled` classes
+- Retained dynamic focus target memory (Theme menu still remembers the active theme on open)

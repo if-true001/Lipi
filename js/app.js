@@ -134,69 +134,93 @@ class LipiApp {
     }
 
     bindEvents() {
-        // --- NEW: WAI-ARIA Keyboard Navigation for Theme Dropdown ---
-        
-        // 1. Handle opening the dropdown via keyboard
-        this.elements.themeSelectBtn.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                if (!this.isThemeDropdownOpen) this.toggleThemeDropdown(true);
-                
-                // Jump focus into the menu (target current theme or first item)
-                setTimeout(() => {
-                    const currentTheme = localStorage.getItem('lipi-theme') || 'system';
-                    const activeOption = Array.from(this.elements.themeOptions).find(opt => opt.dataset.themeVal === currentTheme) || this.elements.themeOptions[0];
-                    activeOption.focus();
-                }, 10);
-            }
-        });
+        // ==============================================================
+        // NEW: Universal M3 Dropdown Keyboard Navigation Engine
+        // ==============================================================
+        const setupMenuKeyboardNav = (anchorBtn, menuEl) => {
+            // 1. Open Menu with Keyboard
+            anchorBtn.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    
+                    // Trigger the existing click handler to manage open/close states
+                    if (menuEl.classList.contains('hidden')) {
+                        anchorBtn.click(); 
+                    }
+                    
+                    // Jump focus inside the menu
+                    setTimeout(() => {
+                        // Dynamically query items to perfectly handle injected "Recent Files"
+                        const items = Array.from(menuEl.querySelectorAll('.menu-item:not([disabled]):not(.disabled)'));
+                        if (items.length > 0) {
+                            // Theme specific: try to highlight the currently active theme
+                            if (menuEl.id === 'theme-dropdown') {
+                                const currentTheme = localStorage.getItem('lipi-theme') || 'system';
+                                const active = items.find(opt => opt.dataset.themeVal === currentTheme);
+                                if (active) { active.focus(); return; }
+                            }
+                            items[0].focus(); // Default to first item
+                        }
+                    }, 10);
+                }
+            });
 
-        // 2. Handle Mouse Clicks to open
+            // 2. Navigate Inside Menu
+            menuEl.addEventListener('keydown', (e) => {
+                const items = Array.from(menuEl.querySelectorAll('.menu-item:not([disabled]):not(.disabled)'));
+                const currentIndex = items.indexOf(document.activeElement);
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const next = items[currentIndex + 1] || items[0];
+                    if (next) next.focus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prev = items[currentIndex - 1] || items[items.length - 1];
+                    if (prev) prev.focus();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    if (!menuEl.classList.contains('hidden')) anchorBtn.click(); 
+                    anchorBtn.focus();
+                } else if (e.key === 'Tab') {
+                    if (!menuEl.classList.contains('hidden')) anchorBtn.click(); 
+                }
+            });
+            
+            // 3. Return focus to anchor after making a selection
+            menuEl.addEventListener('click', (e) => {
+                if (e.target.closest('.menu-item:not([disabled]):not(.disabled)')) {
+                    setTimeout(() => anchorBtn.focus(), 10);
+                }
+            });
+        };
+
+        // Attach engine to all dropdowns
+        setupMenuKeyboardNav(this.elements.addBtn, this.elements.addDropdown);
+        setupMenuKeyboardNav(this.elements.saveBtn, this.elements.saveDropdown);
+        setupMenuKeyboardNav(this.elements.themeSelectBtn, this.elements.themeDropdown);
+        // ==============================================================
+
+
+        // Theme Selection Logic
         this.elements.themeSelectBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleThemeDropdown(!this.isThemeDropdownOpen);
         });
 
-        // 3. Handle Keyboard Arrows and Clicks inside the menu
-        this.elements.themeOptions.forEach((option, index) => {
-            // Keyboard routing inside the menu
-            option.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    // Loop to first if at the bottom
-                    const next = this.elements.themeOptions[index + 1] || this.elements.themeOptions[0];
-                    next.focus();
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    // Loop to last if at the top
-                    const prev = this.elements.themeOptions[index - 1] || this.elements.themeOptions[this.elements.themeOptions.length - 1];
-                    prev.focus();
-                } else if (e.key === 'Escape') {
-                    e.preventDefault();
-                    this.toggleThemeDropdown(false);
-                    this.elements.themeSelectBtn.focus(); // Safely return focus
-                } else if (e.key === 'Tab') {
-                    // Let Tab naturally blur out, but cleanly close the menu
-                    this.toggleThemeDropdown(false);
-                }
-            });
-
-            // Universal selection handler (works for Mouse Click and Keyboard Enter/Space)
+        this.elements.themeOptions.forEach(option => {
             option.addEventListener('click', (e) => {
-                const newTheme = e.currentTarget.dataset.themeVal;
+                const newTheme = e.target.dataset.themeVal;
                 localStorage.setItem('lipi-theme', newTheme);
                 this.updateThemeLabel(newTheme);
                 this.applyTheme(newTheme);
                 this.toggleThemeDropdown(false);
-                
-                // Return focus to the main button so keyboard users don't lose their place
-                this.elements.themeSelectBtn.focus();
             });
         });
-        // ------------------------------------------------------------
 
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
+        // Context Menu Management
         document.addEventListener('contextmenu', (e) => {
             if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]') || e.target.closest('button.m3-select-btn')) {
                 return;
@@ -245,6 +269,7 @@ class LipiApp {
         this.elements.overlay.addEventListener('click', () => this.toggleDrawer(false));
         window.addEventListener('resize', () => { if (window.innerWidth >= 900) this.toggleDrawer(false); });
 
+        // Standard Button Clicks
         this.elements.addBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleAddDropdown(!this.isAddDropdownOpen);
@@ -267,6 +292,7 @@ class LipiApp {
             this.saveFileAs();
         });
 
+        // Modal Actions
         this.elements.modalCancelBtn.addEventListener('click', () => this.closeSaveAsModal());
         this.elements.modalSaveBtn.addEventListener('click', () => this.confirmSaveAs());
         this.elements.saveAsInput.addEventListener('keydown', (e) => {
@@ -278,6 +304,7 @@ class LipiApp {
         this.elements.modalUnsavedDiscardBtn.addEventListener('click', () => this.confirmDiscard());
         this.elements.modalUnsavedSaveBtn.addEventListener('click', () => this.confirmSaveAndClose());
 
+        // Global Unsaved Warning
         window.addEventListener('beforeunload', (e) => {
             const hasUnsaved = this.openFiles.some(f => f.isUnsaved);
             if (hasUnsaved) {
