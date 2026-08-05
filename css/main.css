@@ -10,7 +10,10 @@
     --md-sys-color-surface-container-high: #e9ecec;
     --md-sys-color-outline: #6f797a;
     
-    --md-sys-typescale-display-large-font: system-ui, -apple-system, sans-serif;
+    /* NEW: Explicit Google Fonts definitions */
+    --md-sys-typescale-display-large-font: 'Roboto', system-ui, -apple-system, sans-serif;
+    --editor-font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+    
     --md-sys-typescale-display-large-size: 57px;
     --md-sys-typescale-title-large-size: 22px;
     --md-sys-typescale-title-medium-size: 16px;
@@ -33,7 +36,7 @@ html, body {
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none; 
-    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth Theme Transitions */
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 textarea, input, select, [contenteditable="true"] {
@@ -62,7 +65,6 @@ textarea, input, select, [contenteditable="true"] {
 /* =========================================
    Dark Mode Overrides
 ========================================= */
-/* Applies when manually set via JS */
 [data-theme="dark"] {
     --md-sys-color-primary: #4fd8eb;
     --md-sys-color-on-primary: #00363d;
@@ -75,7 +77,6 @@ textarea, input, select, [contenteditable="true"] {
     --md-sys-color-outline: #899394;
 }
 
-/* Applies when OS is dark AND user selected "System Default" (no data-theme) */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
         --md-sys-color-primary: #4fd8eb;
