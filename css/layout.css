@@ -28,13 +28,9 @@ body { display: flex; }
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
 }
 
-/* NEW: Styles for Inline Renaming */
 #current-file-name.editable {
-    cursor: text;
-    padding: 4px 8px;
-    border-radius: 4px;
-    outline: none;
-    transition: background-color 0.2s;
+    cursor: text; padding: 4px 8px; border-radius: 4px;
+    outline: none; transition: background-color 0.2s;
 }
 
 #current-file-name.editable:hover,
@@ -48,6 +44,14 @@ body { display: flex; }
     width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
     transition: background-color 0.2s;
 }
+
+/* NEW: Pill shape for buttons with an arrow */
+.dropdown-btn {
+    width: auto;
+    padding: 0 8px 0 16px;
+    gap: 2px;
+}
+
 .icon-btn:hover { background-color: var(--md-sys-color-surface-container-high); }
 .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 

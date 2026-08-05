@@ -9,7 +9,8 @@ class LipiApp {
         this.bindEvents();
         
         this.isDrawerOpen = false;
-        this.isDropdownOpen = false;
+        this.isAddDropdownOpen = false;
+        this.isSaveDropdownOpen = false; // NEW
         this.currentView = 'welcome';
         this.fileCounter = 0;
         
@@ -27,13 +28,21 @@ class LipiApp {
             menuBtn: document.getElementById('menu-btn'),
             fileNameDisplay: document.getElementById('current-file-name'),
             unsavedIndicator: document.getElementById('unsaved-indicator'),
-            saveBtn: document.getElementById('save-btn'),
+            
+            // Add Menu Elements
             addBtn: document.getElementById('add-btn'),
             addDropdown: document.getElementById('add-dropdown'),
-            
             dropdownNewFile: document.getElementById('dropdown-new-file'),
             dropdownOpenFile: document.getElementById('dropdown-open-file'),
-            dropdownSaveAs: document.getElementById('dropdown-save-as'), // NEW
+            
+            // NEW: Save Menu Elements
+            saveBtn: document.getElementById('save-btn'),
+            saveDropdown: document.getElementById('save-dropdown'),
+            dropdownActionSave: document.getElementById('dropdown-action-save'),
+            dropdownActionSaveAs: document.getElementById('dropdown-action-save-as'),
+            mainSaveIcon: document.getElementById('main-save-icon'),
+            iconActionSave: document.getElementById('icon-action-save'),
+            iconActionSaveAs: document.getElementById('icon-action-save-as'),
             
             sidebar: document.getElementById('sidebar'),
             overlay: document.getElementById('drawer-overlay'),
@@ -54,8 +63,14 @@ class LipiApp {
 
     handleFeatureSupportUI() {
         if (!this.supportsFileSystemAPI) {
+            // Remove recent lists
             if (this.elements.welcomeRecentGroup) this.elements.welcomeRecentGroup.remove();
             if (this.elements.dropdownRecentGroup) this.elements.dropdownRecentGroup.remove();
+            
+            // Swap M3 Icons to fallback download styles
+            this.elements.mainSaveIcon.textContent = 'download';
+            this.elements.iconActionSave.textContent = 'download';
+            this.elements.iconActionSaveAs.textContent = 'sim_card_download';
         }
     }
 
@@ -64,24 +79,45 @@ class LipiApp {
         this.elements.overlay.addEventListener('click', () => this.toggleDrawer(false));
         window.addEventListener('resize', () => { if (window.innerWidth >= 900) this.toggleDrawer(false); });
 
+        // Add Dropdown Toggle
         this.elements.addBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.toggleDropdown(!this.isDropdownOpen);
+            this.toggleAddDropdown(!this.isAddDropdownOpen);
+            this.toggleSaveDropdown(false); // Close the other dropdown
         });
+
+        // Save Dropdown Toggle
+        this.elements.saveBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleSaveDropdown(!this.isSaveDropdownOpen);
+            this.toggleAddDropdown(false); // Close the other dropdown
+        });
+
+        // Close dropdowns if clicked outside
         document.addEventListener('click', (e) => {
-            if (this.isDropdownOpen && !this.elements.addDropdown.contains(e.target)) {
-                this.toggleDropdown(false);
+            if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) {
+                this.toggleAddDropdown(false);
+            }
+            if (this.isSaveDropdownOpen && !this.elements.saveDropdown.contains(e.target)) {
+                this.toggleSaveDropdown(false);
             }
         });
 
-        // Save and Save As Triggers
-        this.elements.saveBtn.addEventListener('click', () => this.saveCurrentFile());
-        this.elements.dropdownSaveAs.addEventListener('click', () => this.saveFileAs());
+        // Save Actions
+        this.elements.dropdownActionSave.addEventListener('click', () => {
+            this.toggleSaveDropdown(false);
+            this.saveCurrentFile();
+        });
         
+        this.elements.dropdownActionSaveAs.addEventListener('click', () => {
+            this.toggleSaveDropdown(false);
+            this.saveFileAs();
+        });
+
         this.elements.welcomeSidebarItem.addEventListener('click', () => this.activateWelcomeScreen());
 
-        const handleNewFile = () => { this.toggleDropdown(false); this.createNewFile(); };
-        const handleOpenFile = () => { this.toggleDropdown(false); this.openFile(); };
+        const handleNewFile = () => { this.toggleAddDropdown(false); this.createNewFile(); };
+        const handleOpenFile = () => { this.toggleAddDropdown(false); this.openFile(); };
 
         this.elements.btnNewFile.addEventListener('click', handleNewFile);
         this.elements.dropdownNewFile.addEventListener('click', handleNewFile);
@@ -99,7 +135,6 @@ class LipiApp {
             e.target.value = '';
         });
 
-        // Typing in the Editor
         this.elements.mainEditor.addEventListener('input', (e) => {
             if (this.activeFileId) {
                 const file = this.openFiles.find(f => f.id === this.activeFileId);
@@ -114,12 +149,10 @@ class LipiApp {
             }
         });
 
-        // NEW: Inline Renaming Events
         this.elements.fileNameDisplay.addEventListener('keydown', (e) => {
-            // Prevent entering new lines in the title
             if (e.key === 'Enter') {
                 e.preventDefault();
-                this.elements.fileNameDisplay.blur(); // Triggers the rename logic
+                this.elements.fileNameDisplay.blur();
             }
         });
 
@@ -129,8 +162,6 @@ class LipiApp {
             }
         });
     }
-
-    // --- IndexedDB ---
 
     async initDB() {
         return new Promise((resolve, reject) => {
@@ -186,7 +217,7 @@ class LipiApp {
             dropBtn.className = 'menu-item';
             dropBtn.innerHTML = `<span class="material-symbols-rounded">description</span> ${fileData.name}`;
             dropBtn.onclick = () => {
-                this.toggleDropdown(false);
+                this.toggleAddDropdown(false);
                 this.openRecentFile(fileData);
             };
             this.elements.dropdownRecentList.appendChild(dropBtn);
@@ -205,12 +236,21 @@ class LipiApp {
         }
     }
 
-    toggleDropdown(open) {
-        this.isDropdownOpen = open;
-        if (this.isDropdownOpen) {
+    toggleAddDropdown(open) {
+        this.isAddDropdownOpen = open;
+        if (this.isAddDropdownOpen) {
             this.elements.addDropdown.classList.remove('hidden');
         } else {
             this.elements.addDropdown.classList.add('hidden');
+        }
+    }
+
+    toggleSaveDropdown(open) {
+        this.isSaveDropdownOpen = open;
+        if (this.isSaveDropdownOpen) {
+            this.elements.saveDropdown.classList.remove('hidden');
+        } else {
+            this.elements.saveDropdown.classList.add('hidden');
         }
     }
 
@@ -228,37 +268,34 @@ class LipiApp {
     updateUnsavedUI() {
         if (!this.activeFileId) {
             this.elements.unsavedIndicator.style.display = 'none';
-            this.elements.saveBtn.disabled = true;
+            this.elements.saveBtn.disabled = true; // Entire dropdown disabled
             return;
         }
+        
+        // A file is open, so we can always open the menu to 'Save As'
+        this.elements.saveBtn.disabled = false;
         
         const file = this.openFiles.find(f => f.id === this.activeFileId);
         if (file && file.isUnsaved) {
             this.elements.unsavedIndicator.style.display = 'inline-block';
-            this.elements.saveBtn.disabled = false;
+            this.elements.dropdownActionSave.disabled = false;
         } else {
             this.elements.unsavedIndicator.style.display = 'none';
-            this.elements.saveBtn.disabled = true;
+            this.elements.dropdownActionSave.disabled = true;
         }
     }
 
-    // --- NEW: Inline Renaming Logic ---
     renameActiveFile(newName) {
         if (!this.activeFileId) return;
         const file = this.openFiles.find(f => f.id === this.activeFileId);
         
         if (!newName || newName === file.name) {
-            // Revert if empty or unchanged
             this.elements.fileNameDisplay.textContent = file.name;
             return;
         }
 
         file.name = newName;
-        
-        // Sever the file handle so the next 'Save' creates a new file instead of overwriting the old one
         file.handle = null;
-        
-        // Force the app into an unsaved state to prompt the user to save the new file
         file.isUnsaved = true;
         
         this.updateUnsavedUI();
@@ -275,7 +312,7 @@ class LipiApp {
         if (this.supportsFileSystemAPI) {
             try {
                 const [fileHandle] = await window.showOpenFilePicker({
-                    types: [{ description: 'Text Files', accept: {'text/plain': ['.txt', '.md', '.html', '.css', '.js', '.json']} }]
+                    types: [{ description: 'Text Files', accept: {'text/*': ['.txt', '.md', '.html', '.css', '.js', '.json']} }]
                 });
                 const file = await fileHandle.getFile();
                 const content = await file.text();
@@ -320,14 +357,10 @@ class LipiApp {
         
         this.switchView('editor');
         
-        // Make Title Editable
         this.elements.fileNameDisplay.textContent = file.name;
         this.elements.fileNameDisplay.classList.remove('brand-font');
         this.elements.fileNameDisplay.classList.add('editable');
         this.elements.fileNameDisplay.contentEditable = "true";
-        
-        // Enable Save As
-        this.elements.dropdownSaveAs.disabled = false;
         
         this.elements.mainEditor.value = file.content;
         this.updateUnsavedUI(); 
@@ -379,13 +412,10 @@ class LipiApp {
         }
     }
 
-    // --- NEW: Save As Flow ---
     async saveFileAs() {
         if (!this.activeFileId) return;
         const file = this.openFiles.find(f => f.id === this.activeFileId);
         
-        this.toggleDropdown(false);
-
         if (this.supportsFileSystemAPI) {
             try {
                 const handle = await window.showSaveFilePicker({
@@ -407,16 +437,12 @@ class LipiApp {
                 // User cancelled, do nothing
             }
         } else {
-            // Fallback Save As using browser prompt
             let newName = prompt("Save file as:", file.name);
             if (newName) {
                 if (!newName.includes('.')) newName += '.txt';
                 file.name = newName;
                 this.elements.fileNameDisplay.textContent = file.name;
-                
-                // Sever the handle just in case (though fallback doesn't use handles)
                 file.handle = null;
-                
                 this.fallbackSaveDownload(file);
             }
         }
@@ -444,16 +470,17 @@ class LipiApp {
         this.activeFileId = null;
         this.switchView('welcome');
         
-        // Remove Editable properties
         this.elements.fileNameDisplay.textContent = 'Lipi';
         this.elements.fileNameDisplay.classList.add('brand-font');
         this.elements.fileNameDisplay.classList.remove('editable');
         this.elements.fileNameDisplay.contentEditable = "false";
         
-        this.elements.dropdownSaveAs.disabled = true;
         this.elements.unsavedIndicator.style.display = 'none';
-        this.elements.saveBtn.disabled = true;
+        this.elements.saveBtn.disabled = true; // Disable main menu toggle
         this.updateSidebar();
+        
+        this.toggleAddDropdown(false);
+        this.toggleSaveDropdown(false);
         this.toggleDrawer(false);
     }
 

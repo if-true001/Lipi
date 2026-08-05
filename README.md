@@ -1,10 +1,9 @@
 # Lipi
 
-feat: implement inline file renaming and progressive 'Save As'
+feat: implement progressive save dropdown with dynamic fallback icons
 
-- Made Top App Bar title `contenteditable` for active files to allow inline renaming
-- Added logic to sever native file handles upon renaming to prevent accidental overwriting of old files
-- Added "Save As..." option to the M3 Dropdown Menu with disabled state management
-- Implemented native `showSaveFilePicker` for "Save As" on supported browsers
-- Implemented `prompt()` based "Save As" fallback for unsupported browsers
-- Added CSS styles for editable title hover/focus states
+- Wrapped Save button in a dropdown anchor to group "Save" and "Save As" actions
+- Styled Save button to include a dropdown arrow indicating a hidden menu
+- Removed "Save As" from the Add menu and relocated it to the new Save dropdown
+- Implemented dynamic icon swapping: uses 'save'/'save_as' on supported browsers, and 'download'/'sim_card_download' on unsupported fallback browsers
+- Updated UI state logic: main Save menu is enabled for all active files, while the "Save" action within the menu tracks the `isUnsaved` state

@@ -53,6 +53,7 @@
             </div>
             
             <div class="top-bar-right">
+                <!-- Add Menu -->
                 <div class="dropdown-anchor">
                     <button class="icon-btn" id="add-btn" aria-label="Add new or open">
                         <span class="material-symbols-rounded">add</span>
@@ -66,11 +67,6 @@
                             <span class="material-symbols-rounded">folder_open</span> Open File...
                         </button>
                         
-                        <!-- NEW: Save As Option -->
-                        <button class="menu-item" id="dropdown-save-as" disabled>
-                            <span class="material-symbols-rounded">save_as</span> Save As...
-                        </button>
-                        
                         <div id="dropdown-recent-group">
                             <div class="menu-divider"></div>
                             <span class="menu-label">Recent</span>
@@ -79,9 +75,22 @@
                     </div>
                 </div>
 
-                <button class="icon-btn" id="save-btn" aria-label="Save file" disabled>
-                    <span class="material-symbols-rounded">save</span>
-                </button>
+                <!-- NEW: Save Menu Anchor -->
+                <div class="dropdown-anchor">
+                    <button class="icon-btn dropdown-btn" id="save-btn" aria-label="Save options" disabled>
+                        <span id="main-save-icon" class="material-symbols-rounded">save</span>
+                        <span class="material-symbols-rounded" style="font-size: 20px;">arrow_drop_down</span>
+                    </button>
+                    
+                    <div id="save-dropdown" class="m3-menu hidden">
+                        <button class="menu-item" id="dropdown-action-save" disabled>
+                            <span id="icon-action-save" class="material-symbols-rounded">save</span> Save
+                        </button>
+                        <button class="menu-item" id="dropdown-action-save-as">
+                            <span id="icon-action-save-as" class="material-symbols-rounded">save_as</span> Save As...
+                        </button>
+                    </div>
+                </div>
             </div>
         </header>
 
