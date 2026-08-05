@@ -25,51 +25,42 @@
 * { box-sizing: border-box; }
 
 /* =========================================
-   Custom Cross-Device Scrollbar Engine
+   Global Custom Scrollbars
 ========================================= */
-
-/* Firefox Fallback */
+/* 1. Firefox Standard (W3C) */
 * {
     scrollbar-width: thin;
     scrollbar-color: var(--md-sys-color-outline) transparent;
 }
 
-/* WebKit (Chrome, Edge, Safari) */
+/* 2. Webkit Engine (Chrome, Edge, Safari) */
 ::-webkit-scrollbar {
-    width: 14px;  /* Total width for vertical scrollbars */
-    height: 14px; /* Total height for horizontal scrollbars */
+    width: 8px;  /* Vertical scrollbar width */
+    height: 8px; /* Horizontal scrollbar height */
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent; /* Invisible track */
+    background: transparent; /* Seamless blending */
 }
 
 ::-webkit-scrollbar-thumb {
     background-color: var(--md-sys-color-outline);
-    border-radius: 9999px;
-    
-    /* Creates the narrow visual look by padding the thumb with invisible borders */
-    border: 4px solid transparent; 
-    background-clip: padding-box;
+    border-radius: 8px;
 }
 
-/* Visually enlarge the thumb when interacting */
+/* Darken slightly when actively hovering or dragging */
 ::-webkit-scrollbar-thumb:hover,
 ::-webkit-scrollbar-thumb:active {
-    background-color: var(--md-sys-color-primary);
-    border: 2px solid transparent; 
+    background-color: var(--md-sys-color-on-surface);
 }
 
-/* Remove default arrows at the ends of the scrollbar */
 ::-webkit-scrollbar-button {
-    display: none; 
+    display: none; /* Kills the ugly up/down arrows */
 }
 
-::-webkit-scrollbar-corner {
-    background: transparent;
-}
-/* ========================================= */
-
+/* =========================================
+   Base Layout
+========================================= */
 html, body {
     margin: 0;
     padding: 0;
