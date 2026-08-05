@@ -12,7 +12,7 @@ class LipiApp {
         this.isDrawerOpen = false;
         this.isAddDropdownOpen = false;
         this.isSaveDropdownOpen = false;
-        this.isThemeDropdownOpen = false; // NEW
+        this.isThemeDropdownOpen = false;
         
         this.currentView = 'welcome';
         this.fileCounter = 0;
@@ -75,7 +75,6 @@ class LipiApp {
             editorView: document.getElementById('editor-view'),
             settingsView: document.getElementById('settings-view'), 
             
-            // NEW: Custom Theme Elements
             themeSelectBtn: document.getElementById('theme-select-btn'),
             themeSelectLabel: document.getElementById('theme-select-label'),
             themeDropdown: document.getElementById('theme-dropdown'),
@@ -92,7 +91,6 @@ class LipiApp {
         };
     }
 
-    // --- Theme Management ---
     initTheme() {
         const savedTheme = localStorage.getItem('lipi-theme') || 'system';
         this.updateThemeLabel(savedTheme);
@@ -123,7 +121,6 @@ class LipiApp {
             this.elements.themeDropdown.classList.add('hidden');
         }
     }
-    // ------------------------
 
     handleFeatureSupportUI() {
         if (!this.supportsFileSystemAPI) {
@@ -137,22 +134,66 @@ class LipiApp {
     }
 
     bindEvents() {
-        // --- NEW: Custom Theme Selection Events ---
+        // --- NEW: WAI-ARIA Keyboard Navigation for Theme Dropdown ---
+        
+        // 1. Handle opening the dropdown via keyboard
+        this.elements.themeSelectBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (!this.isThemeDropdownOpen) this.toggleThemeDropdown(true);
+                
+                // Jump focus into the menu (target current theme or first item)
+                setTimeout(() => {
+                    const currentTheme = localStorage.getItem('lipi-theme') || 'system';
+                    const activeOption = Array.from(this.elements.themeOptions).find(opt => opt.dataset.themeVal === currentTheme) || this.elements.themeOptions[0];
+                    activeOption.focus();
+                }, 10);
+            }
+        });
+
+        // 2. Handle Mouse Clicks to open
         this.elements.themeSelectBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleThemeDropdown(!this.isThemeDropdownOpen);
         });
 
-        this.elements.themeOptions.forEach(option => {
+        // 3. Handle Keyboard Arrows and Clicks inside the menu
+        this.elements.themeOptions.forEach((option, index) => {
+            // Keyboard routing inside the menu
+            option.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    // Loop to first if at the bottom
+                    const next = this.elements.themeOptions[index + 1] || this.elements.themeOptions[0];
+                    next.focus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    // Loop to last if at the top
+                    const prev = this.elements.themeOptions[index - 1] || this.elements.themeOptions[this.elements.themeOptions.length - 1];
+                    prev.focus();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    this.toggleThemeDropdown(false);
+                    this.elements.themeSelectBtn.focus(); // Safely return focus
+                } else if (e.key === 'Tab') {
+                    // Let Tab naturally blur out, but cleanly close the menu
+                    this.toggleThemeDropdown(false);
+                }
+            });
+
+            // Universal selection handler (works for Mouse Click and Keyboard Enter/Space)
             option.addEventListener('click', (e) => {
-                const newTheme = e.target.dataset.themeVal;
+                const newTheme = e.currentTarget.dataset.themeVal;
                 localStorage.setItem('lipi-theme', newTheme);
                 this.updateThemeLabel(newTheme);
                 this.applyTheme(newTheme);
                 this.toggleThemeDropdown(false);
+                
+                // Return focus to the main button so keyboard users don't lose their place
+                this.elements.themeSelectBtn.focus();
             });
         });
-        // ------------------------------------------
+        // ------------------------------------------------------------
 
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
@@ -175,8 +216,7 @@ class LipiApp {
             if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) this.toggleAddDropdown(false);
             if (this.isSaveDropdownOpen && !this.elements.saveDropdown.contains(e.target)) this.toggleSaveDropdown(false);
             
-            // NEW: Close theme dropdown if clicked outside
-            if (this.isThemeDropdownOpen && !this.elements.themeDropdown.contains(e.target) && e.target !== this.elements.themeSelectBtn) {
+            if (this.isThemeDropdownOpen && !this.elements.themeDropdown.contains(e.target) && e.target !== this.elements.themeSelectBtn && !this.elements.themeSelectBtn.contains(e.target)) {
                 this.toggleThemeDropdown(false);
             }
         });

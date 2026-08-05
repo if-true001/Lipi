@@ -1,8 +1,9 @@
 # Lipi
 
-style: refine theme dropdown button aesthetics and focus states
+feat: implement WAI-ARIA keyboard navigation for custom theme dropdown
 
-- Removed `border` and updated `background-color` on `.m3-select-btn` to `surface-container-high` for instant M3 interactive recognition
-- Added mouse hover states to `.m3-select-btn` with dark mode support
-- Removed old padding/border-shifting `:focus-visible` rules
-- Injected `.m3-select-btn:focus-visible` into the global Keyboard Focus Engine for a unified background highlight behavior
+- Added `keydown` listener to the Theme Select button to open the menu via `Enter`, `Space`, or `ArrowDown`
+- Implemented automatic focus trapping: opening the menu via keyboard instantly focuses the currently active theme option
+- Added `ArrowUp` and `ArrowDown` listeners to `.theme-option` items for seamless looping navigation
+- Added `Escape` key listener to abort selection and safely return focus to the main button
+- Updated option `click` (and `Enter`) logic to automatically restore focus to the main button after a selection is made
