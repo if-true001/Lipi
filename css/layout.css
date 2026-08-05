@@ -14,6 +14,12 @@
     background-color: var(--md-sys-color-surface-container-highest, rgba(0, 104, 116, 0.12));
 }
 
+/* NEW: Highlight the toggle track when focused */
+.m3-switch input:focus-visible + .m3-switch-track {
+    outline: 2px solid var(--md-sys-color-primary) !important;
+    outline-offset: 2px;
+}
+
 [data-theme="dark"] .icon-btn:focus-visible,
 [data-theme="dark"] .text-btn:focus-visible,
 [data-theme="dark"] .m3-btn:focus-visible,
@@ -210,11 +216,7 @@ body { display: flex; }
     background: transparent; color: var(--md-sys-color-on-surface); overflow-y: auto; box-sizing: border-box; transition: color 0.3s ease;
 }
 
-/* NEW: Sync placeholder font to match the editor font */
-#main-editor::placeholder {
-    font-family: inherit;
-    opacity: 0.6;
-}
+#main-editor::placeholder { font-family: inherit; opacity: 0.6; }
 
 .recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 320px; }
 .dropdown-recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; padding-right: 8px; }
@@ -244,3 +246,31 @@ body { display: flex; }
 
 .m3-select-btn:hover { background-color: rgba(0, 0, 0, 0.05); }
 [data-theme="dark"] .m3-select-btn:hover { background-color: rgba(255, 255, 255, 0.05); }
+
+/* NEW: M3 Switch Styling */
+.m3-switch {
+    position: relative; display: inline-block; width: 52px; height: 32px;
+}
+.m3-switch input { opacity: 0; width: 0; height: 0; }
+.m3-switch-track {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--md-sys-color-surface-container-highest, #e3e3e3);
+    border: 2px solid var(--md-sys-color-outline);
+    border-radius: 16px; transition: .3s;
+}
+[data-theme="dark"] .m3-switch-track { background-color: var(--md-sys-color-surface-container); }
+
+.m3-switch-thumb {
+    position: absolute; content: ""; height: 16px; width: 16px; left: 6px; bottom: 6px;
+    background-color: var(--md-sys-color-outline);
+    border-radius: 50%; transition: .3s;
+}
+.m3-switch input:checked + .m3-switch-track {
+    background-color: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
+}
+.m3-switch input:checked + .m3-switch-track .m3-switch-thumb {
+    transform: translateX(20px);
+    background-color: var(--md-sys-color-on-primary);
+    height: 24px; width: 24px; bottom: 2px; left: 4px; /* Adjust left offset for the larger thumb */
+}

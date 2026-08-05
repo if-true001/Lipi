@@ -4,9 +4,22 @@
 class LipiApp {
     constructor() {
         this.supportsFileSystemAPI = 'showOpenFilePicker' in window;
+        
+        // NEW: Ephemeral Storage Engine Initialization
+        this.preserveData = localStorage.getItem('lipi-preserve-data') === 'true';
+        this.memoryState = {
+            'lipi-theme': 'system',
+            'lipi-ui-font': 'default',
+            'lipi-ui-font-label': 'Roboto (Default)',
+            'lipi-editor-font': 'default',
+            'lipi-editor-font-label': 'JetBrains Mono (Default)',
+            recents: []
+        };
+        
         this.initDOM();
         this.initTheme();
-        this.initFonts(); // NEW
+        this.initFonts(); 
+        
         this.handleFeatureSupportUI();
         this.bindEvents();
         
@@ -14,7 +27,6 @@ class LipiApp {
         this.isAddDropdownOpen = false;
         this.isSaveDropdownOpen = false;
         
-        // Settings Dropdown States
         this.isThemeDropdownOpen = false;
         this.isUIFontDropdownOpen = false;
         this.isEditorFontDropdownOpen = false;
@@ -28,9 +40,14 @@ class LipiApp {
         this.fileToClose = null; 
         this.contextMenuTargetId = null;
 
-        if (this.supportsFileSystemAPI) {
-            this.initDB().then(() => this.renderRecentFiles());
-        }
+        // Initialize DB schema regardless, but only populate recent files if preserveData is true
+        this.initDB().then(() => {
+            if (this.preserveData) {
+                this.renderRecentFiles();
+            } else {
+                this.renderMemoryRecentFiles();
+            }
+        });
     }
 
     initDOM() {
@@ -80,12 +97,13 @@ class LipiApp {
             editorView: document.getElementById('editor-view'),
             settingsView: document.getElementById('settings-view'), 
             
+            preserveDataToggle: document.getElementById('preserve-data-toggle'), // NEW
+            
             themeSelectBtn: document.getElementById('theme-select-btn'),
             themeSelectLabel: document.getElementById('theme-select-label'),
             themeDropdown: document.getElementById('theme-dropdown'),
             themeOptions: document.querySelectorAll('.theme-option'),
             
-            // NEW: Font UI Elements
             uiFontBtn: document.getElementById('ui-font-btn'),
             uiFontLabel: document.getElementById('ui-font-label'),
             uiFontDropdown: document.getElementById('ui-font-dropdown'),
@@ -107,11 +125,29 @@ class LipiApp {
             recentContainer: document.getElementById('recent-files-container'),
             dropdownRecentList: document.getElementById('dropdown-recent-list')
         };
+        
+        // Init toggle UI state
+        this.elements.preserveDataToggle.checked = this.preserveData;
     }
 
-    // --- Theme & Font Management ---
+    // --- NEW: Universal State Manager ---
+    getSetting(key) {
+        if (this.preserveData) {
+            return localStorage.getItem(key) || this.memoryState[key];
+        }
+        return this.memoryState[key];
+    }
+
+    setSetting(key, value) {
+        this.memoryState[key] = value; // Always update memory as fallback
+        if (this.preserveData) {
+            localStorage.setItem(key, value);
+        }
+    }
+    // ------------------------------------
+
     initTheme() {
-        const savedTheme = localStorage.getItem('lipi-theme') || 'system';
+        const savedTheme = this.getSetting('lipi-theme');
         this.updateThemeLabel(savedTheme);
         this.applyTheme(savedTheme);
     }
@@ -133,11 +169,14 @@ class LipiApp {
     }
 
     initFonts() {
-        const savedUIFont = localStorage.getItem('lipi-ui-font') || 'default';
-        const savedEditorFont = localStorage.getItem('lipi-editor-font') || 'default';
+        const savedUIFont = this.getSetting('lipi-ui-font');
+        const savedEditorFont = this.getSetting('lipi-editor-font');
         
-        this.applyUIFont(savedUIFont);
-        this.applyEditorFont(savedEditorFont);
+        const savedUILabel = this.getSetting('lipi-ui-font-label');
+        const savedEditorLabel = this.getSetting('lipi-editor-font-label');
+        
+        this.applyUIFont(savedUIFont, savedUIFont !== 'default' ? savedUILabel : null);
+        this.applyEditorFont(savedEditorFont, savedEditorFont !== 'default' ? savedEditorLabel : null);
     }
 
     applyUIFont(fontValue, labelText = null) {
@@ -160,7 +199,6 @@ class LipiApp {
         }
     }
 
-    // --- Dropdown Toggles ---
     closeAllSettingsDropdowns() {
         this.isThemeDropdownOpen = false;
         this.isUIFontDropdownOpen = false;
@@ -200,6 +238,55 @@ class LipiApp {
     }
 
     bindEvents() {
+        
+        // --- NEW: Live Storage Migration Logic ---
+        this.elements.preserveDataToggle.addEventListener('change', async (e) => {
+            this.preserveData = e.target.checked;
+            localStorage.setItem('lipi-preserve-data', this.preserveData);
+
+            if (this.preserveData) {
+                // MIGRATION: Memory -> Permanent Storage
+                localStorage.setItem('lipi-theme', this.memoryState['lipi-theme']);
+                localStorage.setItem('lipi-ui-font', this.memoryState['lipi-ui-font']);
+                localStorage.setItem('lipi-ui-font-label', this.memoryState['lipi-ui-font-label']);
+                localStorage.setItem('lipi-editor-font', this.memoryState['lipi-editor-font']);
+                localStorage.setItem('lipi-editor-font-label', this.memoryState['lipi-editor-font-label']);
+
+                if (this.db && this.memoryState.recents.length > 0) {
+                    await new Promise(resolve => {
+                        const tx = this.db.transaction('recents', 'readwrite');
+                        const store = tx.objectStore('recents');
+                        this.memoryState.recents.forEach(r => store.put(r));
+                        tx.oncomplete = resolve;
+                    });
+                }
+            } else {
+                // MIGRATION: Storage -> Memory, then NUKE Storage
+                this.memoryState['lipi-theme'] = localStorage.getItem('lipi-theme') || 'system';
+                this.memoryState['lipi-ui-font'] = localStorage.getItem('lipi-ui-font') || 'default';
+                this.memoryState['lipi-ui-font-label'] = localStorage.getItem('lipi-ui-font-label') || 'Roboto (Default)';
+                this.memoryState['lipi-editor-font'] = localStorage.getItem('lipi-editor-font') || 'default';
+                this.memoryState['lipi-editor-font-label'] = localStorage.getItem('lipi-editor-font-label') || 'JetBrains Mono (Default)';
+
+                if (this.db) {
+                    this.memoryState.recents = await this.getDBRecents();
+                    await new Promise(resolve => {
+                        const tx = this.db.transaction('recents', 'readwrite');
+                        tx.objectStore('recents').clear(); // Wipe IndexedDB
+                        tx.oncomplete = resolve;
+                    });
+                }
+
+                // Wipe LocalStorage (except the flag itself)
+                localStorage.removeItem('lipi-theme');
+                localStorage.removeItem('lipi-ui-font');
+                localStorage.removeItem('lipi-ui-font-label');
+                localStorage.removeItem('lipi-editor-font');
+                localStorage.removeItem('lipi-editor-font-label');
+            }
+        });
+        // -----------------------------------------
+
         const setupMenuKeyboardNav = (anchorBtn, menuEl) => {
             anchorBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
@@ -210,15 +297,15 @@ class LipiApp {
                         const items = Array.from(menuEl.querySelectorAll('.menu-item:not([disabled]):not(.disabled)'));
                         if (items.length > 0) {
                             if (menuEl.id === 'theme-dropdown') {
-                                const val = localStorage.getItem('lipi-theme') || 'system';
+                                const val = this.getSetting('lipi-theme');
                                 const active = items.find(opt => opt.dataset.themeVal === val);
                                 if (active) { active.focus(); return; }
                             } else if (menuEl.id === 'ui-font-dropdown') {
-                                const val = localStorage.getItem('lipi-ui-font') || 'default';
+                                const val = this.getSetting('lipi-ui-font');
                                 const active = items.find(opt => opt.dataset.fontVal === val);
                                 if (active) { active.focus(); return; }
                             } else if (menuEl.id === 'editor-font-dropdown') {
-                                const val = localStorage.getItem('lipi-editor-font') || 'default';
+                                const val = this.getSetting('lipi-editor-font');
                                 const active = items.find(opt => opt.dataset.fontVal === val);
                                 if (active) { active.focus(); return; }
                             }
@@ -256,14 +343,12 @@ class LipiApp {
             });
         };
 
-        // Attach Universal Keyboard Navigation
         setupMenuKeyboardNav(this.elements.addBtn, this.elements.addDropdown);
         setupMenuKeyboardNav(this.elements.saveBtn, this.elements.saveDropdown);
         setupMenuKeyboardNav(this.elements.themeSelectBtn, this.elements.themeDropdown);
-        setupMenuKeyboardNav(this.elements.uiFontBtn, this.elements.uiFontDropdown); // NEW
-        setupMenuKeyboardNav(this.elements.editorFontBtn, this.elements.editorFontDropdown); // NEW
+        setupMenuKeyboardNav(this.elements.uiFontBtn, this.elements.uiFontDropdown); 
+        setupMenuKeyboardNav(this.elements.editorFontBtn, this.elements.editorFontDropdown); 
 
-        // --- Theme Selection Logic ---
         this.elements.themeSelectBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleThemeDropdown(!this.isThemeDropdownOpen);
@@ -272,14 +357,13 @@ class LipiApp {
         this.elements.themeOptions.forEach(option => {
             option.addEventListener('click', (e) => {
                 const newTheme = e.target.dataset.themeVal;
-                localStorage.setItem('lipi-theme', newTheme);
+                this.setSetting('lipi-theme', newTheme);
                 this.updateThemeLabel(newTheme);
                 this.applyTheme(newTheme);
                 this.closeAllSettingsDropdowns();
             });
         });
 
-        // --- NEW: Font Selection Logic ---
         this.elements.uiFontBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleUIFontDropdown(!this.isUIFontDropdownOpen);
@@ -289,9 +373,8 @@ class LipiApp {
             option.addEventListener('click', (e) => {
                 const val = e.target.dataset.fontVal;
                 const label = e.target.dataset.label;
-                localStorage.setItem('lipi-ui-font', val);
-                // Also save label to localStorage for initialization next reload
-                localStorage.setItem('lipi-ui-font-label', label);
+                this.setSetting('lipi-ui-font', val);
+                this.setSetting('lipi-ui-font-label', label);
                 this.applyUIFont(val, label);
                 this.closeAllSettingsDropdowns();
             });
@@ -306,34 +389,33 @@ class LipiApp {
             option.addEventListener('click', (e) => {
                 const val = e.target.dataset.fontVal;
                 const label = e.target.dataset.label;
-                localStorage.setItem('lipi-editor-font', val);
-                localStorage.setItem('lipi-editor-font-label', label);
+                this.setSetting('lipi-editor-font', val);
+                this.setSetting('lipi-editor-font-label', label);
                 this.applyEditorFont(val, label);
                 this.closeAllSettingsDropdowns();
             });
         });
 
-        // Reset Fonts Logic
         this.elements.resetFontsBtn.addEventListener('click', () => {
-            localStorage.removeItem('lipi-ui-font');
-            localStorage.removeItem('lipi-ui-font-label');
-            localStorage.removeItem('lipi-editor-font');
-            localStorage.removeItem('lipi-editor-font-label');
+            this.setSetting('lipi-ui-font', 'default');
+            this.setSetting('lipi-ui-font-label', 'Roboto (Default)');
+            this.setSetting('lipi-editor-font', 'default');
+            this.setSetting('lipi-editor-font-label', 'JetBrains Mono (Default)');
+            
+            if (this.preserveData) {
+                localStorage.removeItem('lipi-ui-font');
+                localStorage.removeItem('lipi-ui-font-label');
+                localStorage.removeItem('lipi-editor-font');
+                localStorage.removeItem('lipi-editor-font-label');
+            }
             this.applyUIFont('default');
             this.applyEditorFont('default');
         });
-        
-        // Recover saved labels on boot
-        const savedUILabel = localStorage.getItem('lipi-ui-font-label');
-        const savedEditorLabel = localStorage.getItem('lipi-editor-font-label');
-        if (savedUILabel && localStorage.getItem('lipi-ui-font') !== 'default') this.elements.uiFontLabel.textContent = savedUILabel;
-        if (savedEditorLabel && localStorage.getItem('lipi-editor-font') !== 'default') this.elements.editorFontLabel.textContent = savedEditorLabel;
-        // ---------------------------------
 
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
         document.addEventListener('contextmenu', (e) => {
-            if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]') || e.target.closest('button.m3-select-btn')) {
+            if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]') || e.target.closest('button.m3-select-btn') || e.target.closest('label.m3-switch')) {
                 return;
             }
             e.preventDefault(); 
@@ -351,7 +433,6 @@ class LipiApp {
             if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) this.toggleAddDropdown(false);
             if (this.isSaveDropdownOpen && !this.elements.saveDropdown.contains(e.target)) this.toggleSaveDropdown(false);
             
-            // Close setting dropdowns if clicking outside
             if (this.isThemeDropdownOpen && !this.elements.themeDropdown.contains(e.target) && e.target !== this.elements.themeSelectBtn && !this.elements.themeSelectBtn.contains(e.target)) {
                 this.isThemeDropdownOpen = false;
                 this.elements.themeDropdown.classList.add('hidden');
@@ -452,6 +533,18 @@ class LipiApp {
             e.target.value = '';
         });
 
+        this.elements.mainEditor.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault(); 
+                const start = this.elements.mainEditor.selectionStart;
+                const end = this.elements.mainEditor.selectionEnd;
+                const val = this.elements.mainEditor.value;
+                this.elements.mainEditor.value = val.substring(0, start) + '\t' + val.substring(end);
+                this.elements.mainEditor.selectionStart = this.elements.mainEditor.selectionEnd = start + 1;
+                this.elements.mainEditor.dispatchEvent(new Event('input'));
+            }
+        });
+
         this.elements.mainEditor.addEventListener('input', (e) => {
             if (this.activeFileId) {
                 const file = this.openFiles.find(f => f.id === this.activeFileId);
@@ -500,6 +593,15 @@ class LipiApp {
         this.elements.contextMenu.classList.remove('active');
     }
 
+    // --- NEW: Helper to get all DB recents ---
+    async getDBRecents() {
+        return new Promise(resolve => {
+            const tx = this.db.transaction('recents', 'readonly');
+            const req = tx.objectStore('recents').getAll();
+            req.onsuccess = () => resolve(req.result.sort((a,b) => b.timestamp - a.timestamp));
+        });
+    }
+
     async initDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open('LipiDB', 1);
@@ -518,62 +620,80 @@ class LipiApp {
     }
 
     async saveToRecent(name, handle) {
-        if (!this.db || !handle || !this.supportsFileSystemAPI) return; 
-        
-        await new Promise(resolve => {
-            const tx = this.db.transaction('recents', 'readwrite');
-            tx.objectStore('recents').put({ name, handle, timestamp: Date.now() });
-            tx.oncomplete = resolve;
-        });
+        if (!handle || !this.supportsFileSystemAPI) return; 
+        const fileData = { name, handle, timestamp: Date.now() };
 
-        const recents = await new Promise(resolve => {
-            const tx = this.db.transaction('recents', 'readonly');
-            const req = tx.objectStore('recents').getAll();
-            req.onsuccess = () => resolve(req.result.sort((a,b) => b.timestamp - a.timestamp));
-        });
-
-        if (recents.length > 6) {
-            const toDelete = recents.slice(6);
+        if (this.preserveData) {
+            if (!this.db) return;
             await new Promise(resolve => {
                 const tx = this.db.transaction('recents', 'readwrite');
-                toDelete.forEach(item => tx.objectStore('recents').delete(item.name));
+                tx.objectStore('recents').put(fileData);
                 tx.oncomplete = resolve;
             });
-        }
 
-        this.renderRecentFiles();
+            const recents = await this.getDBRecents();
+            if (recents.length > 6) {
+                const toDelete = recents.slice(6);
+                await new Promise(resolve => {
+                    const tx = this.db.transaction('recents', 'readwrite');
+                    toDelete.forEach(item => tx.objectStore('recents').delete(item.name));
+                    tx.oncomplete = resolve;
+                });
+            }
+            this.renderRecentFiles();
+        } else {
+            // Ephemeral Memory Logic
+            const existingIndex = this.memoryState.recents.findIndex(r => r.name === name);
+            if (existingIndex > -1) this.memoryState.recents.splice(existingIndex, 1);
+            this.memoryState.recents.unshift(fileData);
+            if (this.memoryState.recents.length > 6) this.memoryState.recents.pop();
+            this.renderMemoryRecentFiles();
+        }
     }
 
     async removeRecentFile(name) {
-        if (!this.db || !this.supportsFileSystemAPI) return;
-        await new Promise(resolve => {
-            const tx = this.db.transaction('recents', 'readwrite');
-            tx.objectStore('recents').delete(name);
-            tx.oncomplete = resolve;
-        });
-        this.renderRecentFiles();
+        if (!this.supportsFileSystemAPI) return;
+        
+        if (this.preserveData) {
+            if (!this.db) return;
+            await new Promise(resolve => {
+                const tx = this.db.transaction('recents', 'readwrite');
+                tx.objectStore('recents').delete(name);
+                tx.oncomplete = resolve;
+            });
+            this.renderRecentFiles();
+        } else {
+            const index = this.memoryState.recents.findIndex(r => r.name === name);
+            if (index > -1) this.memoryState.recents.splice(index, 1);
+            this.renderMemoryRecentFiles();
+        }
     }
 
     async renderRecentFiles() {
         if (!this.db || !this.supportsFileSystemAPI) return;
-        const recents = await new Promise(resolve => {
-            const tx = this.db.transaction('recents', 'readonly');
-            const req = tx.objectStore('recents').getAll();
-            req.onsuccess = () => resolve(req.result.sort((a,b) => b.timestamp - a.timestamp));
-        });
+        const recents = await this.getDBRecents();
+        this._buildRecentDOM(recents);
+    }
 
+    renderMemoryRecentFiles() {
+        if (!this.supportsFileSystemAPI) return;
+        this._buildRecentDOM(this.memoryState.recents);
+    }
+
+    // Helper to render the DOM for both Storage methods
+    _buildRecentDOM(recentsList) {
         if (!this.elements.recentContainer) return;
 
         this.elements.recentContainer.innerHTML = '';
         this.elements.dropdownRecentList.innerHTML = '';
 
-        if (recents.length === 0) {
+        if (recentsList.length === 0) {
             this.elements.recentContainer.innerHTML = '<span class="empty-state">No recent files</span>';
             this.elements.dropdownRecentList.innerHTML = '<button class="menu-item disabled">No recent files</button>';
             return;
         }
 
-        recents.forEach(fileData => {
+        recentsList.forEach(fileData => {
             const wrapper = document.createElement('div');
             wrapper.className = 'recent-item-wrapper';
 

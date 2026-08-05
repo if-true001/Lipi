@@ -1,10 +1,9 @@
 # Lipi
 
-feat: implement customizable typography for UI and editor
+feat: implement ephemeral state management and session persistence toggle
 
-- Added UI Font and Editor Font custom M3 dropdowns to the Settings view
-- Populated dropdowns with highly available cross-platform system fonts
-- Implemented `initFonts` logic to persist font choices via `localStorage` and apply them dynamically via CSS variable overrides
-- Included "Reset to Defaults" action to instantly clear overrides and restore Roboto / JetBrains Mono
-- Applied `font-family: inherit` to `#main-editor::placeholder` to keep placeholder text synced with the editor font
-- Expanded universal keyboard navigation engine to support the new font dropdown menus
+- Added a "Preserve Session Data" toggle to the Settings view using custom M3 switch styling
+- Built a Memory State Manager (`this.memoryState`) to handle ephemeral settings and recent files
+- Refactored `initTheme`, `initFonts`, and `saveToRecent` to use a dynamic getter/setter that checks the persistence flag
+- Implemented real-time data migration logic: toggling persistence seamlessly pushes data to `localStorage`/`IndexedDB` or pulls it back to memory and wipes the permanent databases
+- Made ephemeral mode the default state for maximum privacy and zero-footprint operation
