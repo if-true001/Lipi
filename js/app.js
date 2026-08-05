@@ -12,14 +12,14 @@ class LipiApp {
             'lipi-ui-font-label': 'Roboto (Default)',
             'lipi-editor-font': 'default',
             'lipi-editor-font-label': 'JetBrains Mono (Default)',
-            'lipi-line-numbers': 'false', // NEW
+            'lipi-line-numbers': 'false', 
             recents: []
         };
         
         this.initDOM();
         this.initTheme();
         this.initFonts(); 
-        this.initLineNumbers(); // NEW
+        this.initLineNumbers(); 
         
         this.handleFeatureSupportUI();
         this.bindEvents();
@@ -34,6 +34,9 @@ class LipiApp {
         
         this.currentView = 'welcome';
         this.fileCounter = 0;
+        
+        // NEW: Escape Hatch State
+        this.escapeTabTrap = false;
         
         this.openFiles = []; 
         this.activeFileId = null; 
@@ -100,7 +103,6 @@ class LipiApp {
             preserveDataToggle: document.getElementById('preserve-data-toggle'), 
             preserveDataDesc: document.getElementById('preserve-data-desc'),
             
-            // NEW: Editor Layout Elements
             editorContainer: document.getElementById('editor-container'),
             lineNumbersGutter: document.getElementById('line-numbers-gutter'),
             lineNumbersToggle: document.getElementById('line-numbers-toggle'),
@@ -149,7 +151,6 @@ class LipiApp {
         }
     }
 
-    // --- NEW: Line Numbers Engine ---
     initLineNumbers() {
         const show = this.getSetting('lipi-line-numbers') === 'true';
         this.elements.lineNumbersToggle.checked = show;
@@ -159,13 +160,11 @@ class LipiApp {
     toggleLineNumbers(show) {
         if (show) {
             this.elements.lineNumbersGutter.classList.remove('hidden');
-            // Force strict code-editor behavior to prevent visual misalignment
             this.elements.mainEditor.style.whiteSpace = 'pre';
             this.elements.mainEditor.style.overflowX = 'auto';
             this.updateLineNumbers();
         } else {
             this.elements.lineNumbersGutter.classList.add('hidden');
-            // Revert to standard text-editor behavior
             this.elements.mainEditor.style.whiteSpace = 'pre-wrap';
             this.elements.mainEditor.style.overflowX = 'hidden';
         }
@@ -178,12 +177,10 @@ class LipiApp {
         const currentLines = this.elements.lineNumbersGutter.dataset.lines || 0;
         
         if (lines != currentLines) {
-            // Generate sequence: "1\n2\n3..."
             this.elements.lineNumbersGutter.textContent = Array.from({length: lines}, (_, i) => i + 1).join('\n');
             this.elements.lineNumbersGutter.dataset.lines = lines;
         }
     }
-    // --------------------------------
 
     initTheme() {
         const savedTheme = this.getSetting('lipi-theme');
@@ -321,7 +318,6 @@ class LipiApp {
             }
         });
 
-        // Toggle Live Storage Migrations
         this.elements.preserveDataToggle.addEventListener('change', async (e) => {
             this.preserveData = e.target.checked;
             localStorage.setItem('lipi-preserve-data', this.preserveData);
@@ -332,7 +328,7 @@ class LipiApp {
                 localStorage.setItem('lipi-ui-font-label', this.memoryState['lipi-ui-font-label']);
                 localStorage.setItem('lipi-editor-font', this.memoryState['lipi-editor-font']);
                 localStorage.setItem('lipi-editor-font-label', this.memoryState['lipi-editor-font-label']);
-                localStorage.setItem('lipi-line-numbers', this.memoryState['lipi-line-numbers']); // NEW
+                localStorage.setItem('lipi-line-numbers', this.memoryState['lipi-line-numbers']); 
 
                 if (this.db && this.memoryState.recents.length > 0) {
                     await new Promise(resolve => {
@@ -348,7 +344,7 @@ class LipiApp {
                 this.memoryState['lipi-ui-font-label'] = localStorage.getItem('lipi-ui-font-label') || 'Roboto (Default)';
                 this.memoryState['lipi-editor-font'] = localStorage.getItem('lipi-editor-font') || 'default';
                 this.memoryState['lipi-editor-font-label'] = localStorage.getItem('lipi-editor-font-label') || 'JetBrains Mono (Default)';
-                this.memoryState['lipi-line-numbers'] = localStorage.getItem('lipi-line-numbers') || 'false'; // NEW
+                this.memoryState['lipi-line-numbers'] = localStorage.getItem('lipi-line-numbers') || 'false'; 
 
                 if (this.db) {
                     this.memoryState.recents = await this.getDBRecents();
@@ -364,11 +360,10 @@ class LipiApp {
                 localStorage.removeItem('lipi-ui-font-label');
                 localStorage.removeItem('lipi-editor-font');
                 localStorage.removeItem('lipi-editor-font-label');
-                localStorage.removeItem('lipi-line-numbers'); // NEW
+                localStorage.removeItem('lipi-line-numbers'); 
             }
         });
 
-        // NEW: Line Numbers UI Toggle
         this.elements.lineNumbersToggle.addEventListener('change', (e) => {
             const show = e.target.checked;
             this.setSetting('lipi-line-numbers', show.toString());
@@ -621,8 +616,23 @@ class LipiApp {
             e.target.value = '';
         });
 
+        // ==============================================================
+        // FIXED: W3C Escape Hatch for Editor Tab Trap
+        // ==============================================================
         this.elements.mainEditor.addEventListener('keydown', (e) => {
-            if (e.key === 'Tab') {
+            if (e.key === 'Escape') {
+                // Activate the escape hatch. Cursor stays where it is, 
+                // but the very next Tab will move focus natively!
+                this.escapeTabTrap = true;
+            } 
+            else if (e.key === 'Tab') {
+                if (this.escapeTabTrap) {
+                    // Turn off the trap and let the browser naturally shift focus
+                    this.escapeTabTrap = false;
+                    return; 
+                }
+                
+                // Normal behavior: trap focus and insert \t
                 e.preventDefault(); 
                 const start = this.elements.mainEditor.selectionStart;
                 const end = this.elements.mainEditor.selectionEnd;
@@ -630,10 +640,16 @@ class LipiApp {
                 this.elements.mainEditor.value = val.substring(0, start) + '\t' + val.substring(end);
                 this.elements.mainEditor.selectionStart = this.elements.mainEditor.selectionEnd = start + 1;
                 this.elements.mainEditor.dispatchEvent(new Event('input'));
+            } 
+            else {
+                // If they type any other key, safely reset the escape hatch
+                if (!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                    this.escapeTabTrap = false; 
+                }
             }
         });
+        // ==============================================================
 
-        // --- NEW: Scroll listener to perfectly sync the line numbers gutter ---
         this.elements.mainEditor.addEventListener('scroll', () => {
             this.elements.lineNumbersGutter.scrollTop = this.elements.mainEditor.scrollTop;
         });
@@ -648,7 +664,6 @@ class LipiApp {
                         this.updateUnsavedUI();
                         this.updateSidebar();
                     }
-                    // Call the numbers updater whenever the user types
                     this.updateLineNumbers();
                 }
             }
@@ -1086,7 +1101,6 @@ class LipiApp {
         
         this.elements.mainEditor.value = file.content;
         
-        // NEW: Ensure numbers are generated immediately upon switching
         this.updateLineNumbers();
         this.updateUnsavedUI(); 
         this.elements.mainEditor.focus();

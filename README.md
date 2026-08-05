@@ -1,7 +1,8 @@
 # Lipi
 
-fix: remove hidden menu elements from keyboard tab index
+fix: implement W3C standard escape hatch for editor tab trap
 
-- Added `visibility` toggles to `.m3-menu`, `.custom-context-menu`, and `.m3-dialog` CSS classes
-- Implemented delayed visibility transitions (`visibility 0s linear 0.2s`) to sync with opacity fade-outs
-- Ensured closed UI components are completely ignored by native browser Tab navigation while preserving M3 animation fluidity
+- Replaced native `.blur()` on `Escape` with a stateful `escapeTabTrap` flag
+- Updated `keydown` listener on `#main-editor` to bypass `e.preventDefault()` on the next `Tab` stroke if the escape hatch is active
+- Added reset logic to re-enable the tab trap if the user resumes typing
+- Ensured seamless forward (`Tab`) and backward (`Shift+Tab`) navigation out of the text editor
