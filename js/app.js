@@ -4,6 +4,8 @@
 class LipiApp {
     constructor() {
         this.supportsFileSystemAPI = 'showOpenFilePicker' in window;
+        // NEW: Detect actual mobile OS 
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         this.preserveData = localStorage.getItem('lipi-preserve-data') === 'true';
         this.memoryState = {
@@ -13,6 +15,7 @@ class LipiApp {
             'lipi-editor-font': 'default',
             'lipi-editor-font-label': 'JetBrains Mono (Default)',
             'lipi-line-numbers': 'false', 
+            'lipi-mobile-bar-force': 'false', // NEW: Store mobile override pref
             recents: []
         };
         
@@ -84,6 +87,15 @@ class LipiApp {
             modalUnsavedDiscardBtn: document.getElementById('modal-unsaved-discard-btn'),
             modalUnsavedSaveBtn: document.getElementById('modal-unsaved-save-btn'),
             
+            // NEW: Status Sheet Modals
+            statusSheetScrim: document.getElementById('status-sheet-scrim'),
+            statusBottomSheet: document.getElementById('status-bottom-sheet'),
+            sheetCursor: document.getElementById('sheet-cursor'),
+            sheetLength: document.getElementById('sheet-length'),
+            sheetLanguage: document.getElementById('sheet-language'),
+            sheetCrlf: document.getElementById('sheet-crlf'),
+            sheetEncoding: document.getElementById('sheet-encoding'),
+            
             contextMenu: document.getElementById('file-context-menu'),
             ctxOpen: document.getElementById('ctx-open'),
             ctxRename: document.getElementById('ctx-rename'),
@@ -110,6 +122,10 @@ class LipiApp {
             preserveDataToggle: document.getElementById('preserve-data-toggle'), 
             preserveDataDesc: document.getElementById('preserve-data-desc'),
             
+            // NEW: Mobile Bar override setting
+            mobileBarSetting: document.getElementById('mobile-bar-setting'),
+            mobileBarToggle: document.getElementById('mobile-bar-toggle'),
+            
             editorContainer: document.getElementById('editor-container'),
             lineNumbersGutter: document.getElementById('line-numbers-gutter'),
             lineNumbersToggle: document.getElementById('line-numbers-toggle'),
@@ -117,6 +133,8 @@ class LipiApp {
             statusBar: document.getElementById('status-bar'),
             statusCursor: document.getElementById('status-cursor'),
             statusLength: document.getElementById('status-length'),
+            statusRightGroup: document.getElementById('status-right-group'), // NEW
+            statusExpandIcon: document.getElementById('status-expand-icon'), // NEW
             statusLanguage: document.getElementById('status-language'),
             statusCrlf: document.getElementById('status-crlf'),
             statusEncoding: document.getElementById('status-encoding'),
@@ -149,8 +167,15 @@ class LipiApp {
         };
         
         this.elements.preserveDataToggle.checked = this.preserveData;
+        
+        // Expose setting only if physically running on mobile
+        if (this.isMobile) {
+            this.elements.mobileBarSetting.style.display = 'flex';
+            this.elements.mobileBarToggle.checked = this.getSetting('lipi-mobile-bar-force') === 'true';
+        }
     }
 
+    // --- UPDATED: Dynamic Logic Engine ---
     updateStatusBar() {
         if (!this.activeFileId) return;
         const file = this.openFiles.find(f => f.id === this.activeFileId);
@@ -159,13 +184,19 @@ class LipiApp {
         const val = this.elements.mainEditor.value;
         const start = this.elements.mainEditor.selectionStart;
 
-        // FIXED: Condensed character count format
-        this.elements.statusLength.textContent = `${val.length} ch`;
+        // View States
+        const isNarrow = window.innerWidth <= 600;
+        const useSheet = this.isMobile && this.getSetting('lipi-mobile-bar-force') !== 'true';
 
+        // Calculation
         const lines = val.substring(0, start).split('\n');
         const currentLine = lines.length;
         const currentCol = lines[lines.length - 1].length + 1;
-        this.elements.statusCursor.textContent = `Ln ${currentLine}, Col ${currentCol}`;
+        const cursorText = `Ln ${currentLine}, Col ${currentCol}`;
+
+        const charCount = val.length;
+        const charFull = `${charCount} chars`;
+        const charCompact = `${charCount} ch`;
 
         let ext = 'Plain Text';
         const name = file.name.toLowerCase();
@@ -176,11 +207,49 @@ class LipiApp {
         else if (name.endsWith('.json')) ext = 'JSON';
         else if (name.endsWith('.py')) ext = 'Python';
         else if (name.endsWith('.c') || name.endsWith('.cpp')) ext = 'C/C++';
-        this.elements.statusLanguage.textContent = ext;
 
-        // FIXED: Condensed Line Ending
-        this.elements.statusCrlf.textContent = file.lineEnding || 'LF';
+        const lineEndFull = file.lineEnding || 'Unix (LF)';
+        const lineEndCompact = lineEndFull.includes('CRLF') ? 'CRLF' : 'LF';
+
+        this.elements.statusCursor.textContent = cursorText;
+
+        if (useSheet) {
+            // Apply Mobile Button Style
+            this.elements.statusRightGroup.style.display = 'none';
+            this.elements.statusExpandIcon.style.display = 'block';
+            this.elements.statusBar.style.cursor = 'pointer';
+            
+            this.elements.statusLength.textContent = charCompact;
+
+            // Populate hidden Bottom Sheet
+            this.elements.sheetCursor.textContent = cursorText;
+            this.elements.sheetLength.textContent = charFull;
+            this.elements.sheetLanguage.textContent = ext;
+            this.elements.sheetCrlf.textContent = lineEndFull;
+            this.elements.sheetEncoding.textContent = 'UTF-8';
+        } else {
+            // Apply Desktop/Narrow Layout
+            this.elements.statusRightGroup.style.display = 'flex';
+            this.elements.statusExpandIcon.style.display = 'none';
+            this.elements.statusBar.style.cursor = 'default';
+
+            this.elements.statusLength.textContent = isNarrow ? charCompact : charFull;
+            this.elements.statusCrlf.textContent = isNarrow ? lineEndCompact : lineEndFull;
+            this.elements.statusLanguage.textContent = ext;
+            this.elements.statusEncoding.textContent = 'UTF-8';
+        }
     }
+
+    openStatusSheet() {
+        this.elements.statusSheetScrim.classList.add('active');
+        this.elements.statusBottomSheet.classList.add('active');
+    }
+
+    closeStatusSheet() {
+        this.elements.statusSheetScrim.classList.remove('active');
+        this.elements.statusBottomSheet.classList.remove('active');
+    }
+    // -------------------------------------
 
     getSetting(key) {
         if (this.preserveData) {
@@ -323,6 +392,25 @@ class LipiApp {
     }
 
     bindEvents() {
+        // Trigger live UI refresh on resize to handle abbreviations 
+        window.addEventListener('resize', () => { 
+            if (window.innerWidth >= 900) this.toggleDrawer(false); 
+            this.updateStatusBar();
+        });
+
+        // NEW: Bottom Sheet hooks
+        this.elements.statusBar.addEventListener('click', () => {
+            const useSheet = this.isMobile && this.getSetting('lipi-mobile-bar-force') !== 'true';
+            if (useSheet) this.openStatusSheet();
+        });
+        this.elements.statusSheetScrim.addEventListener('click', () => this.closeStatusSheet());
+
+        // NEW: Mobile Bar override listener
+        this.elements.mobileBarToggle.addEventListener('change', (e) => {
+            this.setSetting('lipi-mobile-bar-force', e.target.checked.toString());
+            this.updateStatusBar();
+        });
+
         document.addEventListener('keydown', (e) => {
             const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
             const modifierKey = isMac ? e.metaKey : e.ctrlKey;
@@ -374,6 +462,7 @@ class LipiApp {
                 localStorage.setItem('lipi-editor-font', this.memoryState['lipi-editor-font']);
                 localStorage.setItem('lipi-editor-font-label', this.memoryState['lipi-editor-font-label']);
                 localStorage.setItem('lipi-line-numbers', this.memoryState['lipi-line-numbers']); 
+                localStorage.setItem('lipi-mobile-bar-force', this.memoryState['lipi-mobile-bar-force']); // NEW
 
                 if (this.db && this.memoryState.recents.length > 0) {
                     await new Promise(resolve => {
@@ -390,6 +479,7 @@ class LipiApp {
                 this.memoryState['lipi-editor-font'] = localStorage.getItem('lipi-editor-font') || 'default';
                 this.memoryState['lipi-editor-font-label'] = localStorage.getItem('lipi-editor-font-label') || 'JetBrains Mono (Default)';
                 this.memoryState['lipi-line-numbers'] = localStorage.getItem('lipi-line-numbers') || 'false'; 
+                this.memoryState['lipi-mobile-bar-force'] = localStorage.getItem('lipi-mobile-bar-force') || 'false'; // NEW
 
                 if (this.db) {
                     this.memoryState.recents = await this.getDBRecents();
@@ -406,6 +496,7 @@ class LipiApp {
                 localStorage.removeItem('lipi-editor-font');
                 localStorage.removeItem('lipi-editor-font-label');
                 localStorage.removeItem('lipi-line-numbers'); 
+                localStorage.removeItem('lipi-mobile-bar-force'); 
             }
         });
 
@@ -634,7 +725,6 @@ class LipiApp {
 
         this.elements.menuBtn.addEventListener('click', () => this.toggleDrawer(true));
         this.elements.overlay.addEventListener('click', () => this.toggleDrawer(false));
-        window.addEventListener('resize', () => { if (window.innerWidth >= 900) this.toggleDrawer(false); });
 
         this.elements.addBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1123,13 +1213,12 @@ class LipiApp {
         this.updateStatusBar(); 
     }
 
-    // FIXED: Enforce LF or CRLF abbreviations for new files
     createNewFile() {
         const fileName = this.fileCounter === 0 ? 'Untitled.txt' : `Untitled-${this.fileCounter}.txt`;
         this.fileCounter++;
         
         const isWin = navigator.platform.toUpperCase().indexOf('WIN') >= 0;
-        const lineEnding = isWin ? 'CRLF' : 'LF';
+        const lineEnding = isWin ? 'Windows (CRLF)' : 'Unix (LF)';
         
         this.loadFileIntoEditor(fileName, '', null, lineEnding);
     }
@@ -1169,13 +1258,12 @@ class LipiApp {
         }
     }
 
-    // FIXED: Enforce LF or CRLF abbreviations for loaded files
     loadFileIntoEditor(fileName, content, fileHandle, forcedLineEnding = null) {
         const fileId = `file-${Date.now()}`;
         
         let lineEnding = forcedLineEnding;
         if (!lineEnding) {
-            lineEnding = content.includes('\r\n') ? 'CRLF' : 'LF';
+            lineEnding = content.includes('\r\n') ? 'Windows (CRLF)' : 'Unix (LF)';
         }
 
         this.openFiles.push({ 

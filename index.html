@@ -17,6 +17,20 @@
 
     <div id="drawer-overlay" class="scrim hidden"></div>
     <div id="modal-overlay" class="scrim hidden"></div>
+    
+    <!-- NEW: Status Bar Bottom Sheet (Mobile Only) -->
+    <div id="status-sheet-scrim" class="scrim hidden"></div>
+    <div id="status-bottom-sheet" class="m3-bottom-sheet hidden">
+        <div class="sheet-drag-handle"></div>
+        <h3 class="title-large" style="margin-bottom: 16px;">Document Info</h3>
+        <div class="sheet-content">
+            <div class="sheet-item"><span>Cursor</span><span id="sheet-cursor">Ln 1, Col 1</span></div>
+            <div class="sheet-item"><span>Length</span><span id="sheet-length">0 chars</span></div>
+            <div class="sheet-item"><span>Language</span><span id="sheet-language">Plain Text</span></div>
+            <div class="sheet-item"><span>Line Endings</span><span id="sheet-crlf">Unix (LF)</span></div>
+            <div class="sheet-item"><span>Encoding</span><span id="sheet-encoding">UTF-8</span></div>
+        </div>
+    </div>
 
     <div id="save-as-modal" class="m3-dialog hidden">
         <h3 class="title-large">Save As</h3>
@@ -165,17 +179,18 @@
                 <textarea id="main-editor" class="body-large" spellcheck="false" placeholder="Start typing..."></textarea>
             </div>
             
-            <!-- NEW: Material 3 Status Bar -->
             <div id="status-bar">
                 <div class="status-left">
                     <span class="status-item" id="status-cursor">Ln 1, Col 1</span>
                     <span class="status-item" id="status-length">0 chars</span>
                 </div>
-                <div class="status-right">
+                <div class="status-right" id="status-right-group">
                     <span class="status-item" id="status-language">Plain Text</span>
                     <span class="status-item" id="status-crlf">Unix (LF)</span>
                     <span class="status-item" id="status-encoding">UTF-8</span>
                 </div>
+                <!-- NEW: Icon for bottom sheet toggle -->
+                <span class="material-symbols-rounded" id="status-expand-icon" style="display: none; font-size: 20px;">expand_less</span>
             </div>
         </div>
 
@@ -228,6 +243,20 @@
                         </div>
                         <label class="m3-switch" aria-label="Toggle line numbers">
                             <input type="checkbox" id="line-numbers-toggle">
+                            <span class="m3-switch-track">
+                                <span class="m3-switch-thumb"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- NEW: Dynamic Mobile Toggle -->
+                    <div class="setting-item" id="mobile-bar-setting" style="display: none;">
+                        <div class="setting-info">
+                            <span class="title-medium">Classic Status Bar</span>
+                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Use desktop-style status bar instead of bottom sheet</span>
+                        </div>
+                        <label class="m3-switch" aria-label="Toggle mobile bar override">
+                            <input type="checkbox" id="mobile-bar-toggle">
                             <span class="m3-switch-track">
                                 <span class="m3-switch-thumb"></span>
                             </span>
