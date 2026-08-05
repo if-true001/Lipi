@@ -15,19 +15,18 @@
 
     <input type="file" id="fallback-file-input" style="display: none;" accept=".txt,.md,.html,.css,.js,.json">
 
-    <!-- Existing Drawer Overlay -->
     <div id="drawer-overlay" class="scrim hidden"></div>
 
-    <!-- NEW: Modal Overlay & Dialog -->
     <div id="modal-overlay" class="scrim hidden"></div>
     <div id="save-as-modal" class="m3-dialog hidden">
         <h3 class="title-large">Save As</h3>
         <div class="dialog-content">
             <input type="text" id="save-as-input" class="m3-text-input" placeholder="Enter file name..." autocomplete="off">
         </div>
+        <!-- NEW: Updated button classes for M3 personality -->
         <div class="dialog-actions">
-            <button class="text-btn" id="modal-cancel-btn">Cancel</button>
-            <button class="text-btn primary-text" id="modal-save-btn">Save</button>
+            <button class="m3-btn m3-btn-text" id="modal-cancel-btn">Cancel</button>
+            <button class="m3-btn m3-btn-filled" id="modal-save-btn">Save</button>
         </div>
     </div>
 

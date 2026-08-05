@@ -115,7 +115,6 @@ body { display: flex; }
 }
 .scrim.active { display: block; }
 
-/* Modal needs higher z-index than standard scrim */
 #modal-overlay { z-index: 290; } 
 
 .m3-dialog {
@@ -146,11 +145,50 @@ body { display: flex; }
 
 .m3-text-input:focus {
     border-color: var(--md-sys-color-primary); border-width: 2px;
-    padding: 11px 15px; /* Offset border width */
+    padding: 11px 15px; 
 }
 
-.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.primary-text { color: var(--md-sys-color-primary); font-weight: bold; }
+/* NEW: M3 Button Alignment and Styles */
+.dialog-actions { 
+    display: flex; 
+    justify-content: space-between; /* Spreads Cancel and Save to opposite sides */
+    gap: 8px; 
+    margin-top: 8px;
+}
+
+.m3-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 24px;
+    border-radius: 20px; /* Perfect pill shape */
+    font-family: inherit;
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.m3-btn-text {
+    background: transparent;
+    color: var(--md-sys-color-primary);
+}
+
+.m3-btn-text:hover {
+    background-color: rgba(0, 104, 116, 0.08); /* Subtle primary color overlay */
+}
+
+.m3-btn-filled {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+}
+
+.m3-btn-filled:hover {
+    background-color: #005a64; /* Slightly darker shade on hover */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
 
 /* =========================================
    Desktop Layout Overrides (> 900px)
@@ -158,7 +196,7 @@ body { display: flex; }
 @media (min-width: 900px) {
     #menu-btn { display: none; }
     .md-drawer { position: relative; left: 0; z-index: 1; border-right: 1px solid var(--md-sys-color-surface-container-high); }
-    #drawer-overlay.active { display: none; } /* Only hide drawer overlay on desktop, modal overlay stays */
+    #drawer-overlay.active { display: none; } 
 }
 
 /* =========================================
