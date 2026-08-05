@@ -14,7 +14,6 @@
     background-color: var(--md-sys-color-surface-container-highest, rgba(0, 104, 116, 0.12));
 }
 
-/* NEW: Highlight the toggle track when focused */
 .m3-switch input:focus-visible + .m3-switch-track {
     outline: 2px solid var(--md-sys-color-primary) !important;
     outline-offset: 2px;
@@ -224,15 +223,44 @@ body { display: flex; }
 .remove-recent-btn { width: 32px; height: 32px; opacity: 0.4; transition: opacity 0.2s, background-color 0.2s; }
 .remove-recent-btn:hover { opacity: 1; background-color: var(--md-sys-color-surface-container-high); }
 
-/* Settings View Styles */
+/* =========================================
+   Settings View Styles
+========================================= */
 .settings-content {
     padding: 32px 24px; max-width: 800px; margin: 0 auto; width: 100%;
-    display: flex; flex-direction: column; gap: 32px;
+    display: flex; flex-direction: column; gap: 24px; /* Reduced gap since cards have padding */
 }
+
+/* NEW: M3 Settings Card Container */
+.settings-card {
+    background-color: var(--md-sys-color-surface-container);
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s ease;
+}
+
+.settings-card-title {
+    color: var(--md-sys-color-primary);
+    margin: 0 0 24px 0;
+    transition: color 0.3s ease;
+}
+
 .setting-item {
     display: flex; justify-content: space-between; align-items: center;
-    padding-bottom: 24px; border-bottom: 1px solid var(--md-sys-color-surface-container-high);
+    padding-bottom: 24px; margin-bottom: 24px;
+    border-bottom: 1px solid var(--md-sys-color-surface-container-high);
+    transition: border-color 0.3s ease;
 }
+
+/* Remove bottom border on the last item in a card */
+.setting-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
 .setting-info { display: flex; flex-direction: column; gap: 4px; }
 
 .m3-select-btn {
@@ -247,18 +275,15 @@ body { display: flex; }
 .m3-select-btn:hover { background-color: rgba(0, 0, 0, 0.05); }
 [data-theme="dark"] .m3-select-btn:hover { background-color: rgba(255, 255, 255, 0.05); }
 
-/* NEW: M3 Switch Styling */
-.m3-switch {
-    position: relative; display: inline-block; width: 52px; height: 32px;
-}
+.m3-switch { position: relative; display: inline-block; width: 52px; height: 32px; }
 .m3-switch input { opacity: 0; width: 0; height: 0; }
 .m3-switch-track {
     position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
     background-color: var(--md-sys-color-surface-container-highest, #e3e3e3);
     border: 2px solid var(--md-sys-color-outline);
-    border-radius: 16px; transition: .3s;
+    border-radius: 16px; transition: .3s, background-color 0.3s ease;
 }
-[data-theme="dark"] .m3-switch-track { background-color: var(--md-sys-color-surface-container); }
+[data-theme="dark"] .m3-switch-track { background-color: var(--md-sys-color-surface-container-high); }
 
 .m3-switch-thumb {
     position: absolute; content: ""; height: 16px; width: 16px; left: 6px; bottom: 6px;
@@ -272,5 +297,5 @@ body { display: flex; }
 .m3-switch input:checked + .m3-switch-track .m3-switch-thumb {
     transform: translateX(20px);
     background-color: var(--md-sys-color-on-primary);
-    height: 24px; width: 24px; bottom: 2px; left: 4px; /* Adjust left offset for the larger thumb */
+    height: 24px; width: 24px; bottom: 2px; left: 4px;
 }

@@ -154,84 +154,94 @@
 
         <div id="settings-view" class="editor-canvas hidden">
             <div class="settings-content">
-                <h2 class="display-large" style="font-size: 32px; line-height: 1.2; margin-bottom: 16px;">Settings</h2>
+                <h2 class="display-large" style="font-size: 32px; line-height: 1.2; margin-bottom: 8px;">Settings</h2>
                 
-                <!-- NEW: Privacy / Storage Setting -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="title-medium">Preserve Session Data</span>
-                        <span class="body-large" style="opacity: 0.7; font-size: 14px;">Save settings and recent files across browser restarts</span>
+                <!-- NEW: Storage & Privacy Group -->
+                <div class="settings-card">
+                    <h3 class="label-large settings-card-title">Storage & Privacy</h3>
+                    
+                    <div class="setting-item" style="border-bottom: none; padding-bottom: 0;">
+                        <div class="setting-info">
+                            <span class="title-medium">Preserve Session Data</span>
+                            <!-- NEW: Added ID to dynamically change this text via JS -->
+                            <span id="preserve-data-desc" class="body-large" style="opacity: 0.7; font-size: 14px;">Save settings and recent files across browser restarts</span>
+                        </div>
+                        <label class="m3-switch" aria-label="Toggle data preservation">
+                            <input type="checkbox" id="preserve-data-toggle">
+                            <span class="m3-switch-track">
+                                <span class="m3-switch-thumb"></span>
+                            </span>
+                        </label>
                     </div>
-                    <label class="m3-switch" aria-label="Toggle data preservation">
-                        <input type="checkbox" id="preserve-data-toggle">
-                        <span class="m3-switch-track">
-                            <span class="m3-switch-thumb"></span>
-                        </span>
-                    </label>
                 </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="title-medium">Theme</span>
-                        <span class="body-large" style="opacity: 0.7; font-size: 14px;">Choose your preferred appearance</span>
-                    </div>
-                    <div class="dropdown-anchor" style="min-width: 180px;">
-                        <button class="m3-select-btn" id="theme-select-btn" aria-label="Select Theme">
-                            <span id="theme-select-label">System Default</span>
-                            <span class="material-symbols-rounded">arrow_drop_down</span>
-                        </button>
-                        <div id="theme-dropdown" class="m3-menu hidden" style="width: 100%;">
-                            <button class="menu-item theme-option" data-theme-val="system">System Default</button>
-                            <button class="menu-item theme-option" data-theme-val="light">Light</button>
-                            <button class="menu-item theme-option" data-theme-val="dark">Dark</button>
+                <!-- NEW: Appearance Group -->
+                <div class="settings-card">
+                    <h3 class="label-large settings-card-title">Appearance</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="title-medium">Theme</span>
+                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Choose your preferred appearance</span>
+                        </div>
+                        <div class="dropdown-anchor" style="min-width: 180px;">
+                            <button class="m3-select-btn" id="theme-select-btn" aria-label="Select Theme">
+                                <span id="theme-select-label">System Default</span>
+                                <span class="material-symbols-rounded">arrow_drop_down</span>
+                            </button>
+                            <div id="theme-dropdown" class="m3-menu hidden" style="width: 100%;">
+                                <button class="menu-item theme-option" data-theme-val="system">System Default</button>
+                                <button class="menu-item theme-option" data-theme-val="light">Light</button>
+                                <button class="menu-item theme-option" data-theme-val="dark">Dark</button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="title-medium">App Font</span>
-                        <span class="body-large" style="opacity: 0.7; font-size: 14px;">Change the interface font</span>
-                    </div>
-                    <div class="dropdown-anchor" style="min-width: 180px;">
-                        <button class="m3-select-btn" id="ui-font-btn" aria-label="Select App Font">
-                            <span id="ui-font-label">Roboto (Default)</span>
-                            <span class="material-symbols-rounded">arrow_drop_down</span>
-                        </button>
-                        <div id="ui-font-dropdown" class="m3-menu hidden" style="width: 100%;">
-                            <button class="menu-item ui-font-option" data-font-val="default" data-label="Roboto (Default)">Roboto (Default)</button>
-                            <button class="menu-item ui-font-option" data-font-val="system-ui, -apple-system, sans-serif" data-label="System UI">System UI</button>
-                            <button class="menu-item ui-font-option" data-font-val="Arial, Helvetica, sans-serif" data-label="Arial">Arial</button>
-                            <button class="menu-item ui-font-option" data-font-val="'Times New Roman', Times, serif" data-label="Times New Roman">Times New Roman</button>
-                            <button class="menu-item ui-font-option" data-font-val="'Courier New', Courier, monospace" data-label="Courier New">Courier New</button>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="title-medium">App Font</span>
+                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Change the interface font</span>
+                        </div>
+                        <div class="dropdown-anchor" style="min-width: 180px;">
+                            <button class="m3-select-btn" id="ui-font-btn" aria-label="Select App Font">
+                                <span id="ui-font-label">Roboto (Default)</span>
+                                <span class="material-symbols-rounded">arrow_drop_down</span>
+                            </button>
+                            <div id="ui-font-dropdown" class="m3-menu hidden" style="width: 100%;">
+                                <button class="menu-item ui-font-option" data-font-val="default" data-label="Roboto (Default)">Roboto (Default)</button>
+                                <button class="menu-item ui-font-option" data-font-val="system-ui, -apple-system, sans-serif" data-label="System UI">System UI</button>
+                                <button class="menu-item ui-font-option" data-font-val="Arial, Helvetica, sans-serif" data-label="Arial">Arial</button>
+                                <button class="menu-item ui-font-option" data-font-val="'Times New Roman', Times, serif" data-label="Times New Roman">Times New Roman</button>
+                                <button class="menu-item ui-font-option" data-font-val="'Courier New', Courier, monospace" data-label="Courier New">Courier New</button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="title-medium">Editor Font</span>
-                        <span class="body-large" style="opacity: 0.7; font-size: 14px;">Change the workspace font</span>
-                    </div>
-                    <div class="dropdown-anchor" style="min-width: 180px;">
-                        <button class="m3-select-btn" id="editor-font-btn" aria-label="Select Editor Font">
-                            <span id="editor-font-label">JetBrains Mono (Default)</span>
-                            <span class="material-symbols-rounded">arrow_drop_down</span>
-                        </button>
-                        <div id="editor-font-dropdown" class="m3-menu hidden" style="width: 100%;">
-                            <button class="menu-item editor-font-option" data-font-val="default" data-label="JetBrains Mono (Default)">JetBrains Mono (Default)</button>
-                            <button class="menu-item editor-font-option" data-font-val="monospace" data-label="System Monospace">System Monospace</button>
-                            <button class="menu-item editor-font-option" data-font-val="'Courier New', Courier, monospace" data-label="Courier New">Courier New</button>
-                            <button class="menu-item editor-font-option" data-font-val="Arial, Helvetica, sans-serif" data-label="Arial">Arial</button>
-                            <button class="menu-item editor-font-option" data-font-val="'Times New Roman', Times, serif" data-label="Times New Roman">Times New Roman</button>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="title-medium">Editor Font</span>
+                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Change the workspace font</span>
+                        </div>
+                        <div class="dropdown-anchor" style="min-width: 180px;">
+                            <button class="m3-select-btn" id="editor-font-btn" aria-label="Select Editor Font">
+                                <span id="editor-font-label">JetBrains Mono (Default)</span>
+                                <span class="material-symbols-rounded">arrow_drop_down</span>
+                            </button>
+                            <div id="editor-font-dropdown" class="m3-menu hidden" style="width: 100%;">
+                                <button class="menu-item editor-font-option" data-font-val="default" data-label="JetBrains Mono (Default)">JetBrains Mono (Default)</button>
+                                <button class="menu-item editor-font-option" data-font-val="monospace" data-label="System Monospace">System Monospace</button>
+                                <button class="menu-item editor-font-option" data-font-val="'Courier New', Courier, monospace" data-label="Courier New">Courier New</button>
+                                <button class="menu-item editor-font-option" data-font-val="Arial, Helvetica, sans-serif" data-label="Arial">Arial</button>
+                                <button class="menu-item editor-font-option" data-font-val="'Times New Roman', Times, serif" data-label="Times New Roman">Times New Roman</button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="setting-item" style="border-bottom: none; padding-top: 8px;">
-                     <button class="m3-btn m3-btn-text" id="reset-fonts-btn" style="padding-left: 0;">
-                         <span class="material-symbols-rounded" style="margin-right: 8px;">restart_alt</span> Reset Fonts to Defaults
-                     </button>
+                    <div class="setting-item" style="border-bottom: none; padding-top: 8px; padding-bottom: 0;">
+                         <button class="m3-btn m3-btn-text" id="reset-fonts-btn" style="padding-left: 0;">
+                             <span class="material-symbols-rounded" style="margin-right: 8px;">restart_alt</span> Reset Fonts to Defaults
+                         </button>
+                    </div>
                 </div>
 
             </div>

@@ -5,7 +5,6 @@ class LipiApp {
     constructor() {
         this.supportsFileSystemAPI = 'showOpenFilePicker' in window;
         
-        // NEW: Ephemeral Storage Engine Initialization
         this.preserveData = localStorage.getItem('lipi-preserve-data') === 'true';
         this.memoryState = {
             'lipi-theme': 'system',
@@ -40,7 +39,6 @@ class LipiApp {
         this.fileToClose = null; 
         this.contextMenuTargetId = null;
 
-        // Initialize DB schema regardless, but only populate recent files if preserveData is true
         this.initDB().then(() => {
             if (this.preserveData) {
                 this.renderRecentFiles();
@@ -97,7 +95,8 @@ class LipiApp {
             editorView: document.getElementById('editor-view'),
             settingsView: document.getElementById('settings-view'), 
             
-            preserveDataToggle: document.getElementById('preserve-data-toggle'), // NEW
+            preserveDataToggle: document.getElementById('preserve-data-toggle'), 
+            preserveDataDesc: document.getElementById('preserve-data-desc'), // NEW
             
             themeSelectBtn: document.getElementById('theme-select-btn'),
             themeSelectLabel: document.getElementById('theme-select-label'),
@@ -126,11 +125,9 @@ class LipiApp {
             dropdownRecentList: document.getElementById('dropdown-recent-list')
         };
         
-        // Init toggle UI state
         this.elements.preserveDataToggle.checked = this.preserveData;
     }
 
-    // --- NEW: Universal State Manager ---
     getSetting(key) {
         if (this.preserveData) {
             return localStorage.getItem(key) || this.memoryState[key];
@@ -139,12 +136,11 @@ class LipiApp {
     }
 
     setSetting(key, value) {
-        this.memoryState[key] = value; // Always update memory as fallback
+        this.memoryState[key] = value; 
         if (this.preserveData) {
             localStorage.setItem(key, value);
         }
     }
-    // ------------------------------------
 
     initTheme() {
         const savedTheme = this.getSetting('lipi-theme');
@@ -234,18 +230,21 @@ class LipiApp {
             this.elements.mainSaveIcon.textContent = 'download';
             this.elements.iconActionSave.textContent = 'download';
             this.elements.iconActionSaveAs.textContent = 'sim_card_download';
+            
+            // NEW: Conditionally hide the recent files mention in the settings toggle description
+            if (this.elements.preserveDataDesc) {
+                this.elements.preserveDataDesc.textContent = 'Save settings across browser restarts';
+            }
         }
     }
 
     bindEvents() {
         
-        // --- NEW: Live Storage Migration Logic ---
         this.elements.preserveDataToggle.addEventListener('change', async (e) => {
             this.preserveData = e.target.checked;
             localStorage.setItem('lipi-preserve-data', this.preserveData);
 
             if (this.preserveData) {
-                // MIGRATION: Memory -> Permanent Storage
                 localStorage.setItem('lipi-theme', this.memoryState['lipi-theme']);
                 localStorage.setItem('lipi-ui-font', this.memoryState['lipi-ui-font']);
                 localStorage.setItem('lipi-ui-font-label', this.memoryState['lipi-ui-font-label']);
@@ -261,7 +260,6 @@ class LipiApp {
                     });
                 }
             } else {
-                // MIGRATION: Storage -> Memory, then NUKE Storage
                 this.memoryState['lipi-theme'] = localStorage.getItem('lipi-theme') || 'system';
                 this.memoryState['lipi-ui-font'] = localStorage.getItem('lipi-ui-font') || 'default';
                 this.memoryState['lipi-ui-font-label'] = localStorage.getItem('lipi-ui-font-label') || 'Roboto (Default)';
@@ -272,12 +270,11 @@ class LipiApp {
                     this.memoryState.recents = await this.getDBRecents();
                     await new Promise(resolve => {
                         const tx = this.db.transaction('recents', 'readwrite');
-                        tx.objectStore('recents').clear(); // Wipe IndexedDB
+                        tx.objectStore('recents').clear(); 
                         tx.oncomplete = resolve;
                     });
                 }
 
-                // Wipe LocalStorage (except the flag itself)
                 localStorage.removeItem('lipi-theme');
                 localStorage.removeItem('lipi-ui-font');
                 localStorage.removeItem('lipi-ui-font-label');
@@ -285,7 +282,6 @@ class LipiApp {
                 localStorage.removeItem('lipi-editor-font-label');
             }
         });
-        // -----------------------------------------
 
         const setupMenuKeyboardNav = (anchorBtn, menuEl) => {
             anchorBtn.addEventListener('keydown', (e) => {
@@ -593,7 +589,6 @@ class LipiApp {
         this.elements.contextMenu.classList.remove('active');
     }
 
-    // --- NEW: Helper to get all DB recents ---
     async getDBRecents() {
         return new Promise(resolve => {
             const tx = this.db.transaction('recents', 'readonly');
@@ -642,7 +637,6 @@ class LipiApp {
             }
             this.renderRecentFiles();
         } else {
-            // Ephemeral Memory Logic
             const existingIndex = this.memoryState.recents.findIndex(r => r.name === name);
             if (existingIndex > -1) this.memoryState.recents.splice(existingIndex, 1);
             this.memoryState.recents.unshift(fileData);
@@ -680,7 +674,6 @@ class LipiApp {
         this._buildRecentDOM(this.memoryState.recents);
     }
 
-    // Helper to render the DOM for both Storage methods
     _buildRecentDOM(recentsList) {
         if (!this.elements.recentContainer) return;
 
