@@ -23,7 +23,6 @@
         </div>
         
         <div class="drawer-content">
-            <!-- Updated label to ACTIVE FILES -->
             <span class="label-large section-label">ACTIVE FILES</span>
             <ul id="open-files-list" class="drawer-list">
                 <li class="drawer-item active" id="welcome-sidebar-item">
@@ -45,11 +44,15 @@
 
     <main id="workspace">
         <header class="top-app-bar">
+            <!-- NEW: Left container flex fixes for text ellipsis -->
             <div class="top-bar-left">
                 <button class="icon-btn" id="menu-btn" aria-label="Open menu">
                     <span class="material-symbols-rounded">menu</span>
                 </button>
                 <span id="current-file-name" class="title-medium brand-font" style="font-size: 22px;">Lipi</span>
+                
+                <!-- NEW: Unsaved Indicator Dot -->
+                <span id="unsaved-indicator" style="display: none; color: var(--md-sys-color-primary); font-size: 14px; margin-left: -2px;">●</span>
             </div>
             
             <div class="top-bar-right">
@@ -66,7 +69,6 @@
                             <span class="material-symbols-rounded">folder_open</span> Open File...
                         </button>
                         
-                        <!-- Recent section in Dropdown -->
                         <div id="dropdown-recent-group">
                             <div class="menu-divider"></div>
                             <span class="menu-label">Recent</span>
@@ -75,6 +77,7 @@
                     </div>
                 </div>
 
+                <!-- Note: Now explicitly disabled until a change is made -->
                 <button class="icon-btn" id="save-btn" aria-label="Save file" disabled>
                     <span class="material-symbols-rounded">save</span>
                 </button>
@@ -96,7 +99,6 @@
                         </button>
                     </div>
 
-                    <!-- Recent section in Welcome View -->
                     <div class="action-group" id="welcome-recent-group">
                         <span class="label-large">Recent</span>
                         <div id="recent-files-container" class="recent-list"></div>

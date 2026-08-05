@@ -13,9 +13,26 @@ body { display: flex; }
     padding: 8px 12px; background-color: var(--md-sys-color-surface);
     border-bottom: 1px solid var(--md-sys-color-surface-container-high);
     min-height: 56px; flex-shrink: 0; z-index: 10;
+    gap: 16px; /* Space between left text and right buttons */
 }
 
-.top-bar-left, .top-bar-right { display: flex; align-items: center; gap: 8px; }
+.top-bar-left { 
+    display: flex; align-items: center; gap: 8px; 
+    flex: 1;         /* Takes up available space */
+    min-width: 0;    /* CRITICAL: Allows flex child to trigger text ellipsis */
+}
+
+.top-bar-right { 
+    display: flex; align-items: center; gap: 8px; 
+    flex-shrink: 0;  /* Prevents buttons from being squished by long file names */
+}
+
+#current-file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
 
 .icon-btn {
     background: transparent; border: none; color: var(--md-sys-color-on-surface);
@@ -71,7 +88,6 @@ body { display: flex; }
 .drawer-item:hover { background-color: rgba(0,0,0,0.05); }
 .drawer-item.active { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
 
-/* File Item specific styles */
 .file-info { display: flex; align-items: center; gap: 12px; overflow: hidden; }
 .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
