@@ -6,13 +6,18 @@ class LipiApp {
         this.supportsFileSystemAPI = 'showOpenFilePicker' in window;
         this.initDOM();
         this.initTheme();
+        this.initFonts(); // NEW
         this.handleFeatureSupportUI();
         this.bindEvents();
         
         this.isDrawerOpen = false;
         this.isAddDropdownOpen = false;
         this.isSaveDropdownOpen = false;
+        
+        // Settings Dropdown States
         this.isThemeDropdownOpen = false;
+        this.isUIFontDropdownOpen = false;
+        this.isEditorFontDropdownOpen = false;
         
         this.currentView = 'welcome';
         this.fileCounter = 0;
@@ -80,6 +85,19 @@ class LipiApp {
             themeDropdown: document.getElementById('theme-dropdown'),
             themeOptions: document.querySelectorAll('.theme-option'),
             
+            // NEW: Font UI Elements
+            uiFontBtn: document.getElementById('ui-font-btn'),
+            uiFontLabel: document.getElementById('ui-font-label'),
+            uiFontDropdown: document.getElementById('ui-font-dropdown'),
+            uiFontOptions: document.querySelectorAll('.ui-font-option'),
+            
+            editorFontBtn: document.getElementById('editor-font-btn'),
+            editorFontLabel: document.getElementById('editor-font-label'),
+            editorFontDropdown: document.getElementById('editor-font-dropdown'),
+            editorFontOptions: document.querySelectorAll('.editor-font-option'),
+            
+            resetFontsBtn: document.getElementById('reset-fonts-btn'),
+            
             mainEditor: document.getElementById('main-editor'),
             btnNewFile: document.getElementById('action-new-file'),
             btnOpenFile: document.getElementById('action-open-file'),
@@ -91,6 +109,7 @@ class LipiApp {
         };
     }
 
+    // --- Theme & Font Management ---
     initTheme() {
         const savedTheme = localStorage.getItem('lipi-theme') || 'system';
         this.updateThemeLabel(savedTheme);
@@ -113,13 +132,60 @@ class LipiApp {
         if (themeValue === 'dark') this.elements.themeSelectLabel.textContent = 'Dark';
     }
 
-    toggleThemeDropdown(open) {
-        this.isThemeDropdownOpen = open;
-        if (this.isThemeDropdownOpen) {
-            this.elements.themeDropdown.classList.remove('hidden');
+    initFonts() {
+        const savedUIFont = localStorage.getItem('lipi-ui-font') || 'default';
+        const savedEditorFont = localStorage.getItem('lipi-editor-font') || 'default';
+        
+        this.applyUIFont(savedUIFont);
+        this.applyEditorFont(savedEditorFont);
+    }
+
+    applyUIFont(fontValue, labelText = null) {
+        if (fontValue === 'default') {
+            document.documentElement.style.removeProperty('--md-sys-typescale-display-large-font');
+            this.elements.uiFontLabel.textContent = 'Roboto (Default)';
         } else {
-            this.elements.themeDropdown.classList.add('hidden');
+            document.documentElement.style.setProperty('--md-sys-typescale-display-large-font', fontValue);
+            if (labelText) this.elements.uiFontLabel.textContent = labelText;
         }
+    }
+
+    applyEditorFont(fontValue, labelText = null) {
+        if (fontValue === 'default') {
+            document.documentElement.style.removeProperty('--editor-font-family');
+            this.elements.editorFontLabel.textContent = 'JetBrains Mono (Default)';
+        } else {
+            document.documentElement.style.setProperty('--editor-font-family', fontValue);
+            if (labelText) this.elements.editorFontLabel.textContent = labelText;
+        }
+    }
+
+    // --- Dropdown Toggles ---
+    closeAllSettingsDropdowns() {
+        this.isThemeDropdownOpen = false;
+        this.isUIFontDropdownOpen = false;
+        this.isEditorFontDropdownOpen = false;
+        this.elements.themeDropdown.classList.add('hidden');
+        this.elements.uiFontDropdown.classList.add('hidden');
+        this.elements.editorFontDropdown.classList.add('hidden');
+    }
+
+    toggleThemeDropdown(open) {
+        if (open) this.closeAllSettingsDropdowns();
+        this.isThemeDropdownOpen = open;
+        if (open) this.elements.themeDropdown.classList.remove('hidden');
+    }
+
+    toggleUIFontDropdown(open) {
+        if (open) this.closeAllSettingsDropdowns();
+        this.isUIFontDropdownOpen = open;
+        if (open) this.elements.uiFontDropdown.classList.remove('hidden');
+    }
+
+    toggleEditorFontDropdown(open) {
+        if (open) this.closeAllSettingsDropdowns();
+        this.isEditorFontDropdownOpen = open;
+        if (open) this.elements.editorFontDropdown.classList.remove('hidden');
     }
 
     handleFeatureSupportUI() {
@@ -134,38 +200,34 @@ class LipiApp {
     }
 
     bindEvents() {
-        // ==============================================================
-        // NEW: Universal M3 Dropdown Keyboard Navigation Engine
-        // ==============================================================
         const setupMenuKeyboardNav = (anchorBtn, menuEl) => {
-            // 1. Open Menu with Keyboard
             anchorBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
+                    if (menuEl.classList.contains('hidden')) anchorBtn.click(); 
                     
-                    // Trigger the existing click handler to manage open/close states
-                    if (menuEl.classList.contains('hidden')) {
-                        anchorBtn.click(); 
-                    }
-                    
-                    // Jump focus inside the menu
                     setTimeout(() => {
-                        // Dynamically query items to perfectly handle injected "Recent Files"
                         const items = Array.from(menuEl.querySelectorAll('.menu-item:not([disabled]):not(.disabled)'));
                         if (items.length > 0) {
-                            // Theme specific: try to highlight the currently active theme
                             if (menuEl.id === 'theme-dropdown') {
-                                const currentTheme = localStorage.getItem('lipi-theme') || 'system';
-                                const active = items.find(opt => opt.dataset.themeVal === currentTheme);
+                                const val = localStorage.getItem('lipi-theme') || 'system';
+                                const active = items.find(opt => opt.dataset.themeVal === val);
+                                if (active) { active.focus(); return; }
+                            } else if (menuEl.id === 'ui-font-dropdown') {
+                                const val = localStorage.getItem('lipi-ui-font') || 'default';
+                                const active = items.find(opt => opt.dataset.fontVal === val);
+                                if (active) { active.focus(); return; }
+                            } else if (menuEl.id === 'editor-font-dropdown') {
+                                const val = localStorage.getItem('lipi-editor-font') || 'default';
+                                const active = items.find(opt => opt.dataset.fontVal === val);
                                 if (active) { active.focus(); return; }
                             }
-                            items[0].focus(); // Default to first item
+                            items[0].focus(); 
                         }
                     }, 10);
                 }
             });
 
-            // 2. Navigate Inside Menu
             menuEl.addEventListener('keydown', (e) => {
                 const items = Array.from(menuEl.querySelectorAll('.menu-item:not([disabled]):not(.disabled)'));
                 const currentIndex = items.indexOf(document.activeElement);
@@ -187,7 +249,6 @@ class LipiApp {
                 }
             });
             
-            // 3. Return focus to anchor after making a selection
             menuEl.addEventListener('click', (e) => {
                 if (e.target.closest('.menu-item:not([disabled]):not(.disabled)')) {
                     setTimeout(() => anchorBtn.focus(), 10);
@@ -195,14 +256,14 @@ class LipiApp {
             });
         };
 
-        // Attach engine to all dropdowns
+        // Attach Universal Keyboard Navigation
         setupMenuKeyboardNav(this.elements.addBtn, this.elements.addDropdown);
         setupMenuKeyboardNav(this.elements.saveBtn, this.elements.saveDropdown);
         setupMenuKeyboardNav(this.elements.themeSelectBtn, this.elements.themeDropdown);
-        // ==============================================================
+        setupMenuKeyboardNav(this.elements.uiFontBtn, this.elements.uiFontDropdown); // NEW
+        setupMenuKeyboardNav(this.elements.editorFontBtn, this.elements.editorFontDropdown); // NEW
 
-
-        // Theme Selection Logic
+        // --- Theme Selection Logic ---
         this.elements.themeSelectBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleThemeDropdown(!this.isThemeDropdownOpen);
@@ -214,13 +275,63 @@ class LipiApp {
                 localStorage.setItem('lipi-theme', newTheme);
                 this.updateThemeLabel(newTheme);
                 this.applyTheme(newTheme);
-                this.toggleThemeDropdown(false);
+                this.closeAllSettingsDropdowns();
             });
         });
 
+        // --- NEW: Font Selection Logic ---
+        this.elements.uiFontBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleUIFontDropdown(!this.isUIFontDropdownOpen);
+        });
+
+        this.elements.uiFontOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                const val = e.target.dataset.fontVal;
+                const label = e.target.dataset.label;
+                localStorage.setItem('lipi-ui-font', val);
+                // Also save label to localStorage for initialization next reload
+                localStorage.setItem('lipi-ui-font-label', label);
+                this.applyUIFont(val, label);
+                this.closeAllSettingsDropdowns();
+            });
+        });
+
+        this.elements.editorFontBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleEditorFontDropdown(!this.isEditorFontDropdownOpen);
+        });
+
+        this.elements.editorFontOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                const val = e.target.dataset.fontVal;
+                const label = e.target.dataset.label;
+                localStorage.setItem('lipi-editor-font', val);
+                localStorage.setItem('lipi-editor-font-label', label);
+                this.applyEditorFont(val, label);
+                this.closeAllSettingsDropdowns();
+            });
+        });
+
+        // Reset Fonts Logic
+        this.elements.resetFontsBtn.addEventListener('click', () => {
+            localStorage.removeItem('lipi-ui-font');
+            localStorage.removeItem('lipi-ui-font-label');
+            localStorage.removeItem('lipi-editor-font');
+            localStorage.removeItem('lipi-editor-font-label');
+            this.applyUIFont('default');
+            this.applyEditorFont('default');
+        });
+        
+        // Recover saved labels on boot
+        const savedUILabel = localStorage.getItem('lipi-ui-font-label');
+        const savedEditorLabel = localStorage.getItem('lipi-editor-font-label');
+        if (savedUILabel && localStorage.getItem('lipi-ui-font') !== 'default') this.elements.uiFontLabel.textContent = savedUILabel;
+        if (savedEditorLabel && localStorage.getItem('lipi-editor-font') !== 'default') this.elements.editorFontLabel.textContent = savedEditorLabel;
+        // ---------------------------------
+
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
-        // Context Menu Management
         document.addEventListener('contextmenu', (e) => {
             if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]') || e.target.closest('button.m3-select-btn')) {
                 return;
@@ -240,8 +351,18 @@ class LipiApp {
             if (this.isAddDropdownOpen && !this.elements.addDropdown.contains(e.target)) this.toggleAddDropdown(false);
             if (this.isSaveDropdownOpen && !this.elements.saveDropdown.contains(e.target)) this.toggleSaveDropdown(false);
             
+            // Close setting dropdowns if clicking outside
             if (this.isThemeDropdownOpen && !this.elements.themeDropdown.contains(e.target) && e.target !== this.elements.themeSelectBtn && !this.elements.themeSelectBtn.contains(e.target)) {
-                this.toggleThemeDropdown(false);
+                this.isThemeDropdownOpen = false;
+                this.elements.themeDropdown.classList.add('hidden');
+            }
+            if (this.isUIFontDropdownOpen && !this.elements.uiFontDropdown.contains(e.target) && e.target !== this.elements.uiFontBtn && !this.elements.uiFontBtn.contains(e.target)) {
+                this.isUIFontDropdownOpen = false;
+                this.elements.uiFontDropdown.classList.add('hidden');
+            }
+            if (this.isEditorFontDropdownOpen && !this.elements.editorFontDropdown.contains(e.target) && e.target !== this.elements.editorFontBtn && !this.elements.editorFontBtn.contains(e.target)) {
+                this.isEditorFontDropdownOpen = false;
+                this.elements.editorFontDropdown.classList.add('hidden');
             }
         });
 
@@ -269,7 +390,6 @@ class LipiApp {
         this.elements.overlay.addEventListener('click', () => this.toggleDrawer(false));
         window.addEventListener('resize', () => { if (window.innerWidth >= 900) this.toggleDrawer(false); });
 
-        // Standard Button Clicks
         this.elements.addBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleAddDropdown(!this.isAddDropdownOpen);
@@ -292,7 +412,6 @@ class LipiApp {
             this.saveFileAs();
         });
 
-        // Modal Actions
         this.elements.modalCancelBtn.addEventListener('click', () => this.closeSaveAsModal());
         this.elements.modalSaveBtn.addEventListener('click', () => this.confirmSaveAs());
         this.elements.saveAsInput.addEventListener('keydown', (e) => {
@@ -304,7 +423,6 @@ class LipiApp {
         this.elements.modalUnsavedDiscardBtn.addEventListener('click', () => this.confirmDiscard());
         this.elements.modalUnsavedSaveBtn.addEventListener('click', () => this.confirmSaveAndClose());
 
-        // Global Unsaved Warning
         window.addEventListener('beforeunload', (e) => {
             const hasUnsaved = this.openFiles.some(f => f.isUnsaved);
             if (hasUnsaved) {
@@ -650,6 +768,7 @@ class LipiApp {
         
         this.toggleAddDropdown(false);
         this.toggleSaveDropdown(false);
+        this.closeAllSettingsDropdowns();
         this.toggleDrawer(false);
     }
 

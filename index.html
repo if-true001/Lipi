@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lipi</title>
-    <!-- Material Symbols -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
-    
-    <!-- NEW: Unified Google Fonts Import (Roboto, JetBrains Mono, Supermercado One) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Roboto:wght@400;500;700&family=Supermercado+One&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/layout.css">
 </head>
@@ -165,21 +161,68 @@
                         <span class="title-medium">Theme</span>
                         <span class="body-large" style="opacity: 0.7; font-size: 14px;">Choose your preferred appearance</span>
                     </div>
-                    
-                    <div class="dropdown-anchor" id="theme-dropdown-anchor" style="min-width: 180px;">
+                    <div class="dropdown-anchor" style="min-width: 180px;">
                         <button class="m3-select-btn" id="theme-select-btn" aria-label="Select Theme">
                             <span id="theme-select-label">System Default</span>
                             <span class="material-symbols-rounded">arrow_drop_down</span>
                         </button>
-                        
                         <div id="theme-dropdown" class="m3-menu hidden" style="width: 100%;">
                             <button class="menu-item theme-option" data-theme-val="system">System Default</button>
                             <button class="menu-item theme-option" data-theme-val="light">Light</button>
                             <button class="menu-item theme-option" data-theme-val="dark">Dark</button>
                         </div>
                     </div>
-
                 </div>
+
+                <!-- NEW: UI Font Selection -->
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="title-medium">App Font</span>
+                        <span class="body-large" style="opacity: 0.7; font-size: 14px;">Change the interface font</span>
+                    </div>
+                    <div class="dropdown-anchor" style="min-width: 180px;">
+                        <button class="m3-select-btn" id="ui-font-btn" aria-label="Select App Font">
+                            <span id="ui-font-label">Roboto (Default)</span>
+                            <span class="material-symbols-rounded">arrow_drop_down</span>
+                        </button>
+                        <div id="ui-font-dropdown" class="m3-menu hidden" style="width: 100%;">
+                            <button class="menu-item ui-font-option" data-font-val="default" data-label="Roboto (Default)">Roboto (Default)</button>
+                            <button class="menu-item ui-font-option" data-font-val="system-ui, -apple-system, sans-serif" data-label="System UI">System UI</button>
+                            <button class="menu-item ui-font-option" data-font-val="Arial, Helvetica, sans-serif" data-label="Arial">Arial</button>
+                            <button class="menu-item ui-font-option" data-font-val="'Times New Roman', Times, serif" data-label="Times New Roman">Times New Roman</button>
+                            <button class="menu-item ui-font-option" data-font-val="'Courier New', Courier, monospace" data-label="Courier New">Courier New</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Editor Font Selection -->
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="title-medium">Editor Font</span>
+                        <span class="body-large" style="opacity: 0.7; font-size: 14px;">Change the workspace font</span>
+                    </div>
+                    <div class="dropdown-anchor" style="min-width: 180px;">
+                        <button class="m3-select-btn" id="editor-font-btn" aria-label="Select Editor Font">
+                            <span id="editor-font-label">JetBrains Mono (Default)</span>
+                            <span class="material-symbols-rounded">arrow_drop_down</span>
+                        </button>
+                        <div id="editor-font-dropdown" class="m3-menu hidden" style="width: 100%;">
+                            <button class="menu-item editor-font-option" data-font-val="default" data-label="JetBrains Mono (Default)">JetBrains Mono (Default)</button>
+                            <button class="menu-item editor-font-option" data-font-val="monospace" data-label="System Monospace">System Monospace</button>
+                            <button class="menu-item editor-font-option" data-font-val="'Courier New', Courier, monospace" data-label="Courier New">Courier New</button>
+                            <button class="menu-item editor-font-option" data-font-val="Arial, Helvetica, sans-serif" data-label="Arial">Arial</button>
+                            <button class="menu-item editor-font-option" data-font-val="'Times New Roman', Times, serif" data-label="Times New Roman">Times New Roman</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Reset Button -->
+                <div class="setting-item" style="border-bottom: none; padding-top: 8px;">
+                     <button class="m3-btn m3-btn-text" id="reset-fonts-btn" style="padding-left: 0;">
+                         <span class="material-symbols-rounded" style="margin-right: 8px;">restart_alt</span> Reset Fonts to Defaults
+                     </button>
+                </div>
+
             </div>
         </div>
 

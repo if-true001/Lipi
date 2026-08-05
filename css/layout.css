@@ -204,18 +204,25 @@ body { display: flex; }
 .text-btn { display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--md-sys-color-primary); font-family: inherit; cursor: pointer; padding: 8px 0; width: fit-content; transition: color 0.3s ease, background-color 0.2s ease; }
 @media (min-width: 600px) { .action-columns { flex-direction: row; gap: 80px; } }
 
-/* NEW: Utilizing our editor CSS variable */
 #main-editor {
     flex-grow: 1; height: 100%; width: 100%; border: none; resize: none; outline: none; padding: 24px;
     font-family: var(--editor-font-family); 
     background: transparent; color: var(--md-sys-color-on-surface); overflow-y: auto; box-sizing: border-box; transition: color 0.3s ease;
 }
+
+/* NEW: Sync placeholder font to match the editor font */
+#main-editor::placeholder {
+    font-family: inherit;
+    opacity: 0.6;
+}
+
 .recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 320px; }
 .dropdown-recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; padding-right: 8px; }
 .dropdown-recent-item-wrapper .menu-item { flex-grow: 1; width: auto; padding-right: 8px; }
 .remove-recent-btn { width: 32px; height: 32px; opacity: 0.4; transition: opacity 0.2s, background-color 0.2s; }
 .remove-recent-btn:hover { opacity: 1; background-color: var(--md-sys-color-surface-container-high); }
 
+/* Settings View Styles */
 .settings-content {
     padding: 32px 24px; max-width: 800px; margin: 0 auto; width: 100%;
     display: flex; flex-direction: column; gap: 32px;
