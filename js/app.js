@@ -114,7 +114,6 @@ class LipiApp {
             lineNumbersGutter: document.getElementById('line-numbers-gutter'),
             lineNumbersToggle: document.getElementById('line-numbers-toggle'),
             
-            // NEW: Status Bar Elements
             statusBar: document.getElementById('status-bar'),
             statusCursor: document.getElementById('status-cursor'),
             statusLength: document.getElementById('status-length'),
@@ -152,7 +151,6 @@ class LipiApp {
         this.elements.preserveDataToggle.checked = this.preserveData;
     }
 
-    // --- NEW: Status Bar Update Engine ---
     updateStatusBar() {
         if (!this.activeFileId) return;
         const file = this.openFiles.find(f => f.id === this.activeFileId);
@@ -161,16 +159,14 @@ class LipiApp {
         const val = this.elements.mainEditor.value;
         const start = this.elements.mainEditor.selectionStart;
 
-        // 1. Character Length
-        this.elements.statusLength.textContent = `${val.length} chars`;
+        // FIXED: Condensed character count format
+        this.elements.statusLength.textContent = `${val.length} ch`;
 
-        // 2. Cursor Position
         const lines = val.substring(0, start).split('\n');
         const currentLine = lines.length;
         const currentCol = lines[lines.length - 1].length + 1;
         this.elements.statusCursor.textContent = `Ln ${currentLine}, Col ${currentCol}`;
 
-        // 3. View Mode / Language Parsing
         let ext = 'Plain Text';
         const name = file.name.toLowerCase();
         if (name.endsWith('.md')) ext = 'Markdown';
@@ -182,10 +178,9 @@ class LipiApp {
         else if (name.endsWith('.c') || name.endsWith('.cpp')) ext = 'C/C++';
         this.elements.statusLanguage.textContent = ext;
 
-        // 4. Line Endings
-        this.elements.statusCrlf.textContent = file.lineEnding || 'Unix (LF)';
+        // FIXED: Condensed Line Ending
+        this.elements.statusCrlf.textContent = file.lineEnding || 'LF';
     }
-    // -------------------------------------
 
     getSetting(key) {
         if (this.preserveData) {
@@ -592,7 +587,7 @@ class LipiApp {
                 this.elements.mainEditor.focus();
                 document.execCommand(command);
                 this.elements.mainEditor.dispatchEvent(new Event('input'));
-                this.updateStatusBar(); // NEW: Force status update on tool edit
+                this.updateStatusBar(); 
                 this.hideContextMenu();
             });
         };
@@ -610,7 +605,7 @@ class LipiApp {
                 const text = await navigator.clipboard.readText();
                 document.execCommand('insertText', false, text);
                 this.elements.mainEditor.dispatchEvent(new Event('input'));
-                this.updateStatusBar(); // NEW: Force status update on paste
+                this.updateStatusBar(); 
             } catch (err) {
                 console.error("Paste permission denied or unsupported");
             }
@@ -732,11 +727,9 @@ class LipiApp {
             this.elements.lineNumbersGutter.scrollTop = this.elements.mainEditor.scrollTop;
         });
 
-        // --- NEW: Status Bar Hooks ---
         const updateCursor = () => this.updateStatusBar();
         this.elements.mainEditor.addEventListener('keyup', updateCursor);
         this.elements.mainEditor.addEventListener('click', updateCursor);
-        // -----------------------------
 
         this.elements.mainEditor.addEventListener('input', (e) => {
             if (this.activeFileId) {
@@ -749,7 +742,7 @@ class LipiApp {
                         this.updateSidebar();
                     }
                     this.updateLineNumbers();
-                    this.updateStatusBar(); // NEW: Hook
+                    this.updateStatusBar(); 
                 }
             }
         });
@@ -1127,16 +1120,16 @@ class LipiApp {
         
         this.updateUnsavedUI();
         this.updateSidebar();
-        this.updateStatusBar(); // NEW: Hook
+        this.updateStatusBar(); 
     }
 
+    // FIXED: Enforce LF or CRLF abbreviations for new files
     createNewFile() {
         const fileName = this.fileCounter === 0 ? 'Untitled.txt' : `Untitled-${this.fileCounter}.txt`;
         this.fileCounter++;
         
-        // NEW: OS-level Line Ending Default
         const isWin = navigator.platform.toUpperCase().indexOf('WIN') >= 0;
-        const lineEnding = isWin ? 'Windows (CRLF)' : 'Unix (LF)';
+        const lineEnding = isWin ? 'CRLF' : 'LF';
         
         this.loadFileIntoEditor(fileName, '', null, lineEnding);
     }
@@ -1176,13 +1169,13 @@ class LipiApp {
         }
     }
 
-    // UPDATED: Added forcedLineEnding parameter
+    // FIXED: Enforce LF or CRLF abbreviations for loaded files
     loadFileIntoEditor(fileName, content, fileHandle, forcedLineEnding = null) {
         const fileId = `file-${Date.now()}`;
         
         let lineEnding = forcedLineEnding;
         if (!lineEnding) {
-            lineEnding = content.includes('\r\n') ? 'Windows (CRLF)' : 'Unix (LF)';
+            lineEnding = content.includes('\r\n') ? 'CRLF' : 'LF';
         }
 
         this.openFiles.push({ 
@@ -1191,7 +1184,7 @@ class LipiApp {
             content: content, 
             handle: fileHandle, 
             isUnsaved: false,
-            lineEnding: lineEnding // NEW
+            lineEnding: lineEnding 
         });
         
         this.switchToEditor(fileId);
@@ -1217,7 +1210,7 @@ class LipiApp {
         this.elements.mainEditor.value = file.content;
         
         this.updateLineNumbers();
-        this.updateStatusBar(); // NEW: Hook
+        this.updateStatusBar(); 
         this.updateUnsavedUI(); 
         this.elements.mainEditor.focus();
     }
