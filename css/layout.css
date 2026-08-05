@@ -66,6 +66,8 @@ body { display: flex; }
 .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .dropdown-anchor { position: relative; }
+
+/* FIXED: Visibility state added to completely block Tab targeting */
 .m3-menu {
     position: absolute; top: 56px; right: 0;
     background-color: var(--md-sys-color-surface-container);
@@ -73,18 +75,33 @@ body { display: flex; }
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     min-width: 220px; padding: 12px 0; z-index: 200;
     display: flex; flex-direction: column; opacity: 1;
-    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease; transform-origin: top right;
+    visibility: visible;
+    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease, visibility 0s;
+    transform-origin: top right;
 }
-.m3-menu.hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
+.m3-menu.hidden { 
+    opacity: 0; pointer-events: none; transform: scale(0.95); 
+    visibility: hidden;
+    /* Waits 0.2s for fade-out to finish before hiding from layout */
+    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease, visibility 0s linear 0.2s;
+}
+
+/* FIXED: Custom context menu tab blocking */
 .custom-context-menu {
     position: fixed; background-color: var(--md-sys-color-surface-container);
     border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
     min-width: 180px; padding: 8px 0; z-index: 9999;
     display: flex; flex-direction: column; opacity: 0;
     pointer-events: none; transform: scale(0.95);
-    transform-origin: top left; transition: opacity 0.1s ease, transform 0.1s ease, background-color 0.3s ease;
+    transform-origin: top left;
+    visibility: hidden;
+    transition: opacity 0.1s ease, transform 0.1s ease, background-color 0.3s ease, visibility 0s linear 0.1s;
 }
-.custom-context-menu.active { opacity: 1; pointer-events: all; transform: scale(1); }
+.custom-context-menu.active { 
+    opacity: 1; pointer-events: all; transform: scale(1); 
+    visibility: visible;
+    transition: opacity 0.1s ease, transform 0.1s ease, background-color 0.3s ease, visibility 0s;
+}
 
 .menu-item {
     display: flex; align-items: center; gap: 16px; padding: 12px 24px;
@@ -146,6 +163,7 @@ body { display: flex; }
 .scrim.active { display: block; }
 #modal-overlay { z-index: 290; } 
 
+/* FIXED: Modals tab blocking */
 .m3-dialog {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
     background-color: var(--md-sys-color-surface-container-high);
@@ -153,10 +171,16 @@ body { display: flex; }
     padding: 24px; width: 90%; max-width: 400px; z-index: 300;
     display: flex; flex-direction: column; gap: 24px;
     opacity: 0; pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease, visibility 0s linear 0.2s;
     box-shadow: 0 10px 32px rgba(0,0,0,0.2);
 }
-.m3-dialog.active { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
+.m3-dialog.active { 
+    opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); 
+    visibility: visible;
+    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease, visibility 0s;
+}
+
 .m3-dialog h3 { margin: 0; color: var(--md-sys-color-on-surface); transition: color 0.3s ease; }
 
 .m3-text-input {
@@ -209,7 +233,6 @@ body { display: flex; }
 .text-btn { display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--md-sys-color-primary); font-family: inherit; cursor: pointer; padding: 8px 0; width: fit-content; transition: color 0.3s ease, background-color 0.2s ease; }
 @media (min-width: 600px) { .action-columns { flex-direction: row; gap: 80px; } }
 
-/* NEW: Layout structure for synchronized line numbers */
 #editor-container {
     display: flex; flex-direction: row; height: 100%; width: 100%; overflow: hidden;
 }
@@ -220,7 +243,7 @@ body { display: flex; }
     color: var(--md-sys-color-outline);
     font-family: var(--editor-font-family);
     font-size: var(--md-sys-typescale-body-large-size);
-    line-height: 1.5; /* STRICT SYNC */
+    line-height: 1.5; 
     text-align: right;
     overflow-y: hidden;
     user-select: none;
@@ -239,9 +262,9 @@ body { display: flex; }
     flex-grow: 1; height: 100%; width: 100%; border: none; resize: none; outline: none; padding: 24px;
     font-family: var(--editor-font-family);
     font-size: var(--md-sys-typescale-body-large-size);
-    line-height: 1.5; /* STRICT SYNC */
+    line-height: 1.5;
     background: transparent; color: var(--md-sys-color-on-surface); overflow-y: auto; box-sizing: border-box; transition: color 0.3s ease;
-    white-space: pre-wrap; /* Default soft wrapping */
+    white-space: pre-wrap; 
 }
 
 #main-editor::placeholder { font-family: inherit; opacity: 0.6; }
