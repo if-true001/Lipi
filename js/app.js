@@ -35,7 +35,6 @@ class LipiApp {
         this.currentView = 'welcome';
         this.fileCounter = 0;
         
-        // NEW: Escape Hatch State
         this.escapeTabTrap = false;
         
         this.openFiles = []; 
@@ -89,6 +88,15 @@ class LipiApp {
             ctxOpen: document.getElementById('ctx-open'),
             ctxRename: document.getElementById('ctx-rename'),
             ctxClose: document.getElementById('ctx-close'),
+            
+            // NEW: Editor Context Menu UI Elements
+            editorContextMenu: document.getElementById('editor-context-menu'),
+            editCut: document.getElementById('edit-cut'),
+            editCopy: document.getElementById('edit-copy'),
+            editPaste: document.getElementById('edit-paste'),
+            editUndo: document.getElementById('edit-undo'),
+            editRedo: document.getElementById('edit-redo'),
+            editDelete: document.getElementById('edit-delete'),
             
             sidebar: document.getElementById('sidebar'),
             overlay: document.getElementById('drawer-overlay'),
@@ -497,19 +505,31 @@ class LipiApp {
 
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
+        // ==============================================================
+        // FIXED: Universal Context Menu Router
+        // ==============================================================
         document.addEventListener('contextmenu', (e) => {
-            if (e.target.closest('textarea') || e.target.closest('input') || e.target.closest('[contenteditable="true"]') || e.target.closest('button.m3-select-btn') || e.target.closest('label.m3-switch')) {
+            if (e.target.closest('input') || e.target.closest('button.m3-select-btn') || e.target.closest('label.m3-switch')) {
+                return; // Let native context menu run for standard non-editor inputs
+            }
+
+            e.preventDefault(); 
+            this.hideContextMenu(); // Close any existing menus
+
+            // 1. Check if clicking inside the main text editor
+            if (e.target.closest('#main-editor')) {
+                this.showEditorContextMenu(e.clientX, e.clientY);
                 return;
             }
-            e.preventDefault(); 
+
+            // 2. Check if clicking a sidebar file item
             const drawerItem = e.target.closest('.drawer-item:not(#welcome-sidebar-item):not(#settings-btn)');
             if (drawerItem) {
                 const fileId = drawerItem.dataset.id;
-                this.showContextMenu(e.clientX, e.clientY, fileId);
-            } else {
-                this.hideContextMenu();
+                this.showSidebarContextMenu(e.clientX, e.clientY, fileId);
             }
         });
+        // ==============================================================
 
         document.addEventListener('click', (e) => {
             this.hideContextMenu();
@@ -529,6 +549,41 @@ class LipiApp {
                 this.elements.editorFontDropdown.classList.add('hidden');
             }
         });
+
+        // ==============================================================
+        // NEW: Editor Context Menu Button Bindings (Native Text Tools)
+        // Prevent default mousedown so clicking the buttons doesn't steal focus from the editor!
+        // ==============================================================
+        const bindEditorTool = (btn, command) => {
+            btn.addEventListener('mousedown', e => e.preventDefault());
+            btn.addEventListener('click', () => {
+                this.elements.mainEditor.focus();
+                document.execCommand(command);
+                this.elements.mainEditor.dispatchEvent(new Event('input'));
+                this.hideContextMenu();
+            });
+        };
+
+        bindEditorTool(this.elements.editCut, 'cut');
+        bindEditorTool(this.elements.editCopy, 'copy');
+        bindEditorTool(this.elements.editUndo, 'undo');
+        bindEditorTool(this.elements.editRedo, 'redo');
+        bindEditorTool(this.elements.editDelete, 'delete');
+
+        // Paste uses modern clipboard API for security
+        this.elements.editPaste.addEventListener('mousedown', e => e.preventDefault());
+        this.elements.editPaste.addEventListener('click', async () => {
+            this.elements.mainEditor.focus();
+            try {
+                const text = await navigator.clipboard.readText();
+                document.execCommand('insertText', false, text);
+                this.elements.mainEditor.dispatchEvent(new Event('input'));
+            } catch (err) {
+                console.error("Paste permission denied or unsupported");
+            }
+            this.hideContextMenu();
+        });
+        // ==============================================================
 
         this.elements.ctxOpen.addEventListener('click', () => {
             if (this.contextMenuTargetId) this.switchToEditor(this.contextMenuTargetId);
@@ -616,23 +671,16 @@ class LipiApp {
             e.target.value = '';
         });
 
-        // ==============================================================
-        // FIXED: W3C Escape Hatch for Editor Tab Trap
-        // ==============================================================
         this.elements.mainEditor.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                // Activate the escape hatch. Cursor stays where it is, 
-                // but the very next Tab will move focus natively!
                 this.escapeTabTrap = true;
             } 
             else if (e.key === 'Tab') {
                 if (this.escapeTabTrap) {
-                    // Turn off the trap and let the browser naturally shift focus
                     this.escapeTabTrap = false;
                     return; 
                 }
                 
-                // Normal behavior: trap focus and insert \t
                 e.preventDefault(); 
                 const start = this.elements.mainEditor.selectionStart;
                 const end = this.elements.mainEditor.selectionEnd;
@@ -642,13 +690,11 @@ class LipiApp {
                 this.elements.mainEditor.dispatchEvent(new Event('input'));
             } 
             else {
-                // If they type any other key, safely reset the escape hatch
                 if (!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
                     this.escapeTabTrap = false; 
                 }
             }
         });
-        // ==============================================================
 
         this.elements.mainEditor.addEventListener('scroll', () => {
             this.elements.lineNumbersGutter.scrollTop = this.elements.mainEditor.scrollTop;
@@ -683,25 +729,36 @@ class LipiApp {
         });
     }
 
-    showContextMenu(x, y, fileId) {
+    // --- NEW: Routing for specific Context Menus ---
+    showSidebarContextMenu(x, y, fileId) {
         this.contextMenuTargetId = fileId;
+        this.positionMenu(this.elements.contextMenu, x, y);
+    }
+
+    showEditorContextMenu(x, y) {
+        this.positionMenu(this.elements.editorContextMenu, x, y);
+    }
+
+    positionMenu(menuEl, x, y) {
         const menuWidth = 180; 
-        const menuHeight = 150;
+        const menuHeight = 250; // Approximated max height
         let adjustedX = x;
         let adjustedY = y;
         
         if (x + menuWidth > window.innerWidth) adjustedX = window.innerWidth - menuWidth - 10;
         if (y + menuHeight > window.innerHeight) adjustedY = window.innerHeight - menuHeight - 10;
 
-        this.elements.contextMenu.style.left = `${adjustedX}px`;
-        this.elements.contextMenu.style.top = `${adjustedY}px`;
-        this.elements.contextMenu.classList.add('active');
+        menuEl.style.left = `${adjustedX}px`;
+        menuEl.style.top = `${adjustedY}px`;
+        menuEl.classList.add('active');
     }
 
     hideContextMenu() {
         this.contextMenuTargetId = null;
         this.elements.contextMenu.classList.remove('active');
+        this.elements.editorContextMenu.classList.remove('active');
     }
+    // -----------------------------------------------
 
     async getDBRecents() {
         return new Promise(resolve => {

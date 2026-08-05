@@ -43,11 +43,24 @@
         </div>
     </div>
 
+    <!-- Sidebar Item Context Menu -->
     <div id="file-context-menu" class="custom-context-menu">
         <button class="menu-item" id="ctx-open"><span class="material-symbols-rounded">open_in_new</span> Open</button>
         <button class="menu-item" id="ctx-rename"><span class="material-symbols-rounded">edit</span> Rename</button>
         <div class="menu-divider"></div>
         <button class="menu-item m3-btn-danger" id="ctx-close"><span class="material-symbols-rounded">close</span> Close File</button>
+    </div>
+
+    <!-- NEW: Editor Context Menu -->
+    <div id="editor-context-menu" class="custom-context-menu">
+        <button class="menu-item" id="edit-cut"><span class="material-symbols-rounded">content_cut</span> Cut</button>
+        <button class="menu-item" id="edit-copy"><span class="material-symbols-rounded">content_copy</span> Copy</button>
+        <button class="menu-item" id="edit-paste"><span class="material-symbols-rounded">content_paste</span> Paste</button>
+        <div class="menu-divider"></div>
+        <button class="menu-item" id="edit-undo"><span class="material-symbols-rounded">undo</span> Undo</button>
+        <button class="menu-item" id="edit-redo"><span class="material-symbols-rounded">redo</span> Redo</button>
+        <div class="menu-divider"></div>
+        <button class="menu-item m3-btn-danger" id="edit-delete"><span class="material-symbols-rounded">delete</span> Delete</button>
     </div>
 
     <aside id="sidebar" class="md-drawer">
@@ -135,7 +148,6 @@
                         <button class="text-btn" id="action-new-file">
                             <span class="material-symbols-rounded">add</span> New File
                         </button>
-                        <!-- TEXT UPDATED HERE -->
                         <button class="text-btn" id="action-open-file">
                             <span class="material-symbols-rounded">folder_open</span> Open File
                         </button>
