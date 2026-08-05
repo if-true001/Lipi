@@ -31,8 +31,6 @@ class LipiApp {
             menuBtn: document.getElementById('menu-btn'),
             fileNameDisplay: document.getElementById('current-file-name'),
             unsavedIndicator: document.getElementById('unsaved-indicator'),
-            
-            // NEW: Action grouping for easy toggling
             topBarActions: document.getElementById('top-bar-actions'),
             
             addBtn: document.getElementById('add-btn'),
@@ -115,13 +113,11 @@ class LipiApp {
     }
 
     bindEvents() {
-        // Theme Listener updated with .blur()
+        // FIXED: .blur() removed to restore proper keyboard navigation
         this.elements.themeSelect.addEventListener('change', (e) => {
             const newTheme = e.target.value;
             localStorage.setItem('lipi-theme', newTheme);
             this.applyTheme(newTheme);
-            // Drops keyboard focus so arrow keys don't accidentally cycle themes later
-            e.target.blur(); 
         });
 
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
@@ -540,9 +536,7 @@ class LipiApp {
         this.elements.fileNameDisplay.contentEditable = "false";
         
         this.elements.unsavedIndicator.style.display = 'none';
-        
-        // Hide Top Bar Actions for clean UI
-        this.elements.topBarActions.style.display = 'none';
+        this.elements.topBarActions.style.display = 'none'; // Clean UI
         
         Array.from(this.elements.openFilesList.children).forEach(li => li.classList.remove('active'));
         this.elements.welcomeSidebarItem.classList.remove('active');
@@ -644,8 +638,7 @@ class LipiApp {
         
         this.switchView('editor');
         
-        // Restore Top Bar Actions
-        this.elements.topBarActions.style.display = 'flex';
+        this.elements.topBarActions.style.display = 'flex'; // Restore UI
         
         this.elements.fileNameDisplay.textContent = file.name;
         this.elements.fileNameDisplay.classList.remove('brand-font');

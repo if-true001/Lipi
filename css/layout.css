@@ -208,23 +208,33 @@ body { display: flex; }
     flex-direction: column;
     gap: 4px;
 }
+
+/* NEW: Heavily modified to strip native browser styling */
 .m3-select {
-    padding: 12px 16px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding: 12px 36px 12px 16px; /* Added right padding for custom arrow */
     border-radius: 8px;
     border: 1px solid var(--md-sys-color-outline);
     background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface);
     font-family: inherit;
     font-size: var(--md-sys-typescale-body-large-size);
-    outline: none;
+    outline: none !important;
+    box-shadow: none !important;
     cursor: pointer;
     min-width: 180px;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.2s;
+    
+    /* Custom SVG Dropdown Arrow to replace the ugly native one */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 -960 960 960' width='24'%3E%3Cpath fill='%236f797a' d='M480-360 280-560h400L480-360Z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
 }
 
-/* NEW: focus-visible replaces standard focus for cleaner mouse clicks */
 .m3-select:focus-visible {
     border-color: var(--md-sys-color-primary);
     border-width: 2px;
-    padding: 11px 15px; 
+    padding: 11px 35px 11px 15px; /* Shrinks padding by 1px to compensate for 2px border */
 }
