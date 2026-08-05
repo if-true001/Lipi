@@ -67,7 +67,6 @@ body { display: flex; }
 
 .dropdown-anchor { position: relative; }
 
-/* FIXED: Visibility state added to completely block Tab targeting */
 .m3-menu {
     position: absolute; top: 56px; right: 0;
     background-color: var(--md-sys-color-surface-container);
@@ -82,11 +81,9 @@ body { display: flex; }
 .m3-menu.hidden { 
     opacity: 0; pointer-events: none; transform: scale(0.95); 
     visibility: hidden;
-    /* Waits 0.2s for fade-out to finish before hiding from layout */
     transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease, visibility 0s linear 0.2s;
 }
 
-/* FIXED: Custom context menu tab blocking */
 .custom-context-menu {
     position: fixed; background-color: var(--md-sys-color-surface-container);
     border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
@@ -163,7 +160,6 @@ body { display: flex; }
 .scrim.active { display: block; }
 #modal-overlay { z-index: 290; } 
 
-/* FIXED: Modals tab blocking */
 .m3-dialog {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
     background-color: var(--md-sys-color-surface-container-high);
@@ -234,7 +230,7 @@ body { display: flex; }
 @media (min-width: 600px) { .action-columns { flex-direction: row; gap: 80px; } }
 
 #editor-container {
-    display: flex; flex-direction: row; height: 100%; width: 100%; overflow: hidden;
+    display: flex; flex-direction: row; flex-grow: 1; width: 100%; overflow: hidden;
 }
 
 #line-numbers-gutter {
@@ -268,6 +264,25 @@ body { display: flex; }
 }
 
 #main-editor::placeholder { font-family: inherit; opacity: 0.6; }
+
+/* NEW: M3 Status Bar Styles */
+#status-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 28px; padding: 0 16px; flex-shrink: 0;
+    background-color: var(--md-sys-color-surface-container);
+    border-top: 1px solid var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+    font-size: 12px; z-index: 10;
+    user-select: none; transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.status-left, .status-right { display: flex; gap: 24px; white-space: nowrap; opacity: 0.8; }
+.status-item { cursor: default; transition: opacity 0.2s ease; }
+.status-item:hover { opacity: 1; }
+
+@media (max-width: 600px) {
+    #status-encoding, #status-crlf { display: none; }
+}
 
 .recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 320px; }
 .dropdown-recent-item-wrapper { display: flex; align-items: center; justify-content: space-between; padding-right: 8px; }

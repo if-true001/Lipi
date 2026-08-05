@@ -89,7 +89,6 @@ class LipiApp {
             ctxRename: document.getElementById('ctx-rename'),
             ctxClose: document.getElementById('ctx-close'),
             
-            // NEW: Editor Context Menu UI Elements
             editorContextMenu: document.getElementById('editor-context-menu'),
             editCut: document.getElementById('edit-cut'),
             editCopy: document.getElementById('edit-copy'),
@@ -114,6 +113,14 @@ class LipiApp {
             editorContainer: document.getElementById('editor-container'),
             lineNumbersGutter: document.getElementById('line-numbers-gutter'),
             lineNumbersToggle: document.getElementById('line-numbers-toggle'),
+            
+            // NEW: Status Bar Elements
+            statusBar: document.getElementById('status-bar'),
+            statusCursor: document.getElementById('status-cursor'),
+            statusLength: document.getElementById('status-length'),
+            statusLanguage: document.getElementById('status-language'),
+            statusCrlf: document.getElementById('status-crlf'),
+            statusEncoding: document.getElementById('status-encoding'),
             
             themeSelectBtn: document.getElementById('theme-select-btn'),
             themeSelectLabel: document.getElementById('theme-select-label'),
@@ -144,6 +151,41 @@ class LipiApp {
         
         this.elements.preserveDataToggle.checked = this.preserveData;
     }
+
+    // --- NEW: Status Bar Update Engine ---
+    updateStatusBar() {
+        if (!this.activeFileId) return;
+        const file = this.openFiles.find(f => f.id === this.activeFileId);
+        if (!file) return;
+
+        const val = this.elements.mainEditor.value;
+        const start = this.elements.mainEditor.selectionStart;
+
+        // 1. Character Length
+        this.elements.statusLength.textContent = `${val.length} chars`;
+
+        // 2. Cursor Position
+        const lines = val.substring(0, start).split('\n');
+        const currentLine = lines.length;
+        const currentCol = lines[lines.length - 1].length + 1;
+        this.elements.statusCursor.textContent = `Ln ${currentLine}, Col ${currentCol}`;
+
+        // 3. View Mode / Language Parsing
+        let ext = 'Plain Text';
+        const name = file.name.toLowerCase();
+        if (name.endsWith('.md')) ext = 'Markdown';
+        else if (name.endsWith('.html') || name.endsWith('.htm')) ext = 'HTML';
+        else if (name.endsWith('.css')) ext = 'CSS';
+        else if (name.endsWith('.js')) ext = 'JavaScript';
+        else if (name.endsWith('.json')) ext = 'JSON';
+        else if (name.endsWith('.py')) ext = 'Python';
+        else if (name.endsWith('.c') || name.endsWith('.cpp')) ext = 'C/C++';
+        this.elements.statusLanguage.textContent = ext;
+
+        // 4. Line Endings
+        this.elements.statusCrlf.textContent = file.lineEnding || 'Unix (LF)';
+    }
+    // -------------------------------------
 
     getSetting(key) {
         if (this.preserveData) {
@@ -505,31 +547,25 @@ class LipiApp {
 
         this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
-        // ==============================================================
-        // FIXED: Universal Context Menu Router
-        // ==============================================================
         document.addEventListener('contextmenu', (e) => {
             if (e.target.closest('input') || e.target.closest('button.m3-select-btn') || e.target.closest('label.m3-switch')) {
-                return; // Let native context menu run for standard non-editor inputs
+                return; 
             }
 
             e.preventDefault(); 
-            this.hideContextMenu(); // Close any existing menus
+            this.hideContextMenu(); 
 
-            // 1. Check if clicking inside the main text editor
             if (e.target.closest('#main-editor')) {
                 this.showEditorContextMenu(e.clientX, e.clientY);
                 return;
             }
 
-            // 2. Check if clicking a sidebar file item
             const drawerItem = e.target.closest('.drawer-item:not(#welcome-sidebar-item):not(#settings-btn)');
             if (drawerItem) {
                 const fileId = drawerItem.dataset.id;
                 this.showSidebarContextMenu(e.clientX, e.clientY, fileId);
             }
         });
-        // ==============================================================
 
         document.addEventListener('click', (e) => {
             this.hideContextMenu();
@@ -550,16 +586,13 @@ class LipiApp {
             }
         });
 
-        // ==============================================================
-        // NEW: Editor Context Menu Button Bindings (Native Text Tools)
-        // Prevent default mousedown so clicking the buttons doesn't steal focus from the editor!
-        // ==============================================================
         const bindEditorTool = (btn, command) => {
             btn.addEventListener('mousedown', e => e.preventDefault());
             btn.addEventListener('click', () => {
                 this.elements.mainEditor.focus();
                 document.execCommand(command);
                 this.elements.mainEditor.dispatchEvent(new Event('input'));
+                this.updateStatusBar(); // NEW: Force status update on tool edit
                 this.hideContextMenu();
             });
         };
@@ -570,7 +603,6 @@ class LipiApp {
         bindEditorTool(this.elements.editRedo, 'redo');
         bindEditorTool(this.elements.editDelete, 'delete');
 
-        // Paste uses modern clipboard API for security
         this.elements.editPaste.addEventListener('mousedown', e => e.preventDefault());
         this.elements.editPaste.addEventListener('click', async () => {
             this.elements.mainEditor.focus();
@@ -578,12 +610,12 @@ class LipiApp {
                 const text = await navigator.clipboard.readText();
                 document.execCommand('insertText', false, text);
                 this.elements.mainEditor.dispatchEvent(new Event('input'));
+                this.updateStatusBar(); // NEW: Force status update on paste
             } catch (err) {
                 console.error("Paste permission denied or unsupported");
             }
             this.hideContextMenu();
         });
-        // ==============================================================
 
         this.elements.ctxOpen.addEventListener('click', () => {
             if (this.contextMenuTargetId) this.switchToEditor(this.contextMenuTargetId);
@@ -700,6 +732,12 @@ class LipiApp {
             this.elements.lineNumbersGutter.scrollTop = this.elements.mainEditor.scrollTop;
         });
 
+        // --- NEW: Status Bar Hooks ---
+        const updateCursor = () => this.updateStatusBar();
+        this.elements.mainEditor.addEventListener('keyup', updateCursor);
+        this.elements.mainEditor.addEventListener('click', updateCursor);
+        // -----------------------------
+
         this.elements.mainEditor.addEventListener('input', (e) => {
             if (this.activeFileId) {
                 const file = this.openFiles.find(f => f.id === this.activeFileId);
@@ -711,6 +749,7 @@ class LipiApp {
                         this.updateSidebar();
                     }
                     this.updateLineNumbers();
+                    this.updateStatusBar(); // NEW: Hook
                 }
             }
         });
@@ -729,7 +768,6 @@ class LipiApp {
         });
     }
 
-    // --- NEW: Routing for specific Context Menus ---
     showSidebarContextMenu(x, y, fileId) {
         this.contextMenuTargetId = fileId;
         this.positionMenu(this.elements.contextMenu, x, y);
@@ -741,7 +779,7 @@ class LipiApp {
 
     positionMenu(menuEl, x, y) {
         const menuWidth = 180; 
-        const menuHeight = 250; // Approximated max height
+        const menuHeight = 250; 
         let adjustedX = x;
         let adjustedY = y;
         
@@ -758,7 +796,6 @@ class LipiApp {
         this.elements.contextMenu.classList.remove('active');
         this.elements.editorContextMenu.classList.remove('active');
     }
-    // -----------------------------------------------
 
     async getDBRecents() {
         return new Promise(resolve => {
@@ -1090,12 +1127,18 @@ class LipiApp {
         
         this.updateUnsavedUI();
         this.updateSidebar();
+        this.updateStatusBar(); // NEW: Hook
     }
 
     createNewFile() {
         const fileName = this.fileCounter === 0 ? 'Untitled.txt' : `Untitled-${this.fileCounter}.txt`;
         this.fileCounter++;
-        this.loadFileIntoEditor(fileName, '', null);
+        
+        // NEW: OS-level Line Ending Default
+        const isWin = navigator.platform.toUpperCase().indexOf('WIN') >= 0;
+        const lineEnding = isWin ? 'Windows (CRLF)' : 'Unix (LF)';
+        
+        this.loadFileIntoEditor(fileName, '', null, lineEnding);
     }
 
     async openFile() {
@@ -1133,9 +1176,24 @@ class LipiApp {
         }
     }
 
-    loadFileIntoEditor(fileName, content, fileHandle) {
+    // UPDATED: Added forcedLineEnding parameter
+    loadFileIntoEditor(fileName, content, fileHandle, forcedLineEnding = null) {
         const fileId = `file-${Date.now()}`;
-        this.openFiles.push({ id: fileId, name: fileName, content: content, handle: fileHandle, isUnsaved: false });
+        
+        let lineEnding = forcedLineEnding;
+        if (!lineEnding) {
+            lineEnding = content.includes('\r\n') ? 'Windows (CRLF)' : 'Unix (LF)';
+        }
+
+        this.openFiles.push({ 
+            id: fileId, 
+            name: fileName, 
+            content: content, 
+            handle: fileHandle, 
+            isUnsaved: false,
+            lineEnding: lineEnding // NEW
+        });
+        
         this.switchToEditor(fileId);
         this.updateSidebar();
         this.toggleDrawer(false);
@@ -1159,6 +1217,7 @@ class LipiApp {
         this.elements.mainEditor.value = file.content;
         
         this.updateLineNumbers();
+        this.updateStatusBar(); // NEW: Hook
         this.updateUnsavedUI(); 
         this.elements.mainEditor.focus();
     }

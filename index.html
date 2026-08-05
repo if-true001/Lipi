@@ -43,15 +43,6 @@
         </div>
     </div>
 
-    <!-- Sidebar Item Context Menu -->
-    <div id="file-context-menu" class="custom-context-menu">
-        <button class="menu-item" id="ctx-open"><span class="material-symbols-rounded">open_in_new</span> Open</button>
-        <button class="menu-item" id="ctx-rename"><span class="material-symbols-rounded">edit</span> Rename</button>
-        <div class="menu-divider"></div>
-        <button class="menu-item m3-btn-danger" id="ctx-close"><span class="material-symbols-rounded">close</span> Close File</button>
-    </div>
-
-    <!-- NEW: Editor Context Menu -->
     <div id="editor-context-menu" class="custom-context-menu">
         <button class="menu-item" id="edit-cut"><span class="material-symbols-rounded">content_cut</span> Cut</button>
         <button class="menu-item" id="edit-copy"><span class="material-symbols-rounded">content_copy</span> Copy</button>
@@ -61,6 +52,13 @@
         <button class="menu-item" id="edit-redo"><span class="material-symbols-rounded">redo</span> Redo</button>
         <div class="menu-divider"></div>
         <button class="menu-item m3-btn-danger" id="edit-delete"><span class="material-symbols-rounded">delete</span> Delete</button>
+    </div>
+
+    <div id="file-context-menu" class="custom-context-menu">
+        <button class="menu-item" id="ctx-open"><span class="material-symbols-rounded">open_in_new</span> Open</button>
+        <button class="menu-item" id="ctx-rename"><span class="material-symbols-rounded">edit</span> Rename</button>
+        <div class="menu-divider"></div>
+        <button class="menu-item m3-btn-danger" id="ctx-close"><span class="material-symbols-rounded">close</span> Close File</button>
     </div>
 
     <aside id="sidebar" class="md-drawer">
@@ -109,7 +107,7 @@
                             <span class="material-symbols-rounded">note_add</span> New File
                         </button>
                         <button class="menu-item" id="dropdown-open-file">
-                            <span class="material-symbols-rounded">folder_open</span> Open File...
+                            <span class="material-symbols-rounded">folder_open</span> Open File
                         </button>
                         
                         <div id="dropdown-recent-group">
@@ -165,6 +163,19 @@
             <div id="editor-container">
                 <div id="line-numbers-gutter" class="hidden">1</div>
                 <textarea id="main-editor" class="body-large" spellcheck="false" placeholder="Start typing..."></textarea>
+            </div>
+            
+            <!-- NEW: Material 3 Status Bar -->
+            <div id="status-bar">
+                <div class="status-left">
+                    <span class="status-item" id="status-cursor">Ln 1, Col 1</span>
+                    <span class="status-item" id="status-length">0 chars</span>
+                </div>
+                <div class="status-right">
+                    <span class="status-item" id="status-language">Plain Text</span>
+                    <span class="status-item" id="status-crlf">Unix (LF)</span>
+                    <span class="status-item" id="status-encoding">UTF-8</span>
+                </div>
             </div>
         </div>
 
