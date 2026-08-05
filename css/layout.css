@@ -12,26 +12,34 @@ body { display: flex; }
     display: flex; align-items: center; justify-content: space-between;
     padding: 8px 12px; background-color: var(--md-sys-color-surface);
     border-bottom: 1px solid var(--md-sys-color-surface-container-high);
-    min-height: 56px; flex-shrink: 0; z-index: 10;
-    gap: 16px; /* Space between left text and right buttons */
+    min-height: 56px; flex-shrink: 0; z-index: 10; gap: 16px;
 }
 
 .top-bar-left { 
     display: flex; align-items: center; gap: 8px; 
-    flex: 1;         /* Takes up available space */
-    min-width: 0;    /* CRITICAL: Allows flex child to trigger text ellipsis */
+    flex: 1; min-width: 0;
 }
 
 .top-bar-right { 
-    display: flex; align-items: center; gap: 8px; 
-    flex-shrink: 0;  /* Prevents buttons from being squished by long file names */
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
 }
 
 #current-file-name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+}
+
+/* NEW: Styles for Inline Renaming */
+#current-file-name.editable {
+    cursor: text;
+    padding: 4px 8px;
+    border-radius: 4px;
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+#current-file-name.editable:hover,
+#current-file-name.editable:focus {
+    background-color: var(--md-sys-color-surface-container-high);
 }
 
 .icon-btn {

@@ -1,10 +1,10 @@
 # Lipi
 
-fix: fix title overflow and implement unsaved state indicators
+feat: implement inline file renaming and progressive 'Save As'
 
-- Applied `flex: 1` and `min-width: 0` to the Top App Bar left group to enforce text ellipsis on long filenames
-- Locked Top App Bar right group with `flex-shrink: 0` to prevent layout compression
-- Introduced `isUnsaved` tracking to the internal file state array
-- Added dynamic unsaved indicators (`●`) next to the active file title and within the sidebar
-- Wired the editor's `input` event to trigger the unsaved state and enable the save button
-- Reset the unsaved state upon successful native disk save or fallback download
+- Made Top App Bar title `contenteditable` for active files to allow inline renaming
+- Added logic to sever native file handles upon renaming to prevent accidental overwriting of old files
+- Added "Save As..." option to the M3 Dropdown Menu with disabled state management
+- Implemented native `showSaveFilePicker` for "Save As" on supported browsers
+- Implemented `prompt()` based "Save As" fallback for unsupported browsers
+- Added CSS styles for editable title hover/focus states

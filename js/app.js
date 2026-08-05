@@ -26,12 +26,15 @@ class LipiApp {
         this.elements = {
             menuBtn: document.getElementById('menu-btn'),
             fileNameDisplay: document.getElementById('current-file-name'),
-            unsavedIndicator: document.getElementById('unsaved-indicator'), // NEW
+            unsavedIndicator: document.getElementById('unsaved-indicator'),
             saveBtn: document.getElementById('save-btn'),
             addBtn: document.getElementById('add-btn'),
             addDropdown: document.getElementById('add-dropdown'),
+            
             dropdownNewFile: document.getElementById('dropdown-new-file'),
             dropdownOpenFile: document.getElementById('dropdown-open-file'),
+            dropdownSaveAs: document.getElementById('dropdown-save-as'), // NEW
+            
             sidebar: document.getElementById('sidebar'),
             overlay: document.getElementById('drawer-overlay'),
             openFilesList: document.getElementById('open-files-list'),
@@ -71,18 +74,14 @@ class LipiApp {
             }
         });
 
+        // Save and Save As Triggers
         this.elements.saveBtn.addEventListener('click', () => this.saveCurrentFile());
+        this.elements.dropdownSaveAs.addEventListener('click', () => this.saveFileAs());
+        
         this.elements.welcomeSidebarItem.addEventListener('click', () => this.activateWelcomeScreen());
 
-        const handleNewFile = () => {
-            this.toggleDropdown(false);
-            this.createNewFile();
-        };
-
-        const handleOpenFile = () => {
-            this.toggleDropdown(false);
-            this.openFile();
-        };
+        const handleNewFile = () => { this.toggleDropdown(false); this.createNewFile(); };
+        const handleOpenFile = () => { this.toggleDropdown(false); this.openFile(); };
 
         this.elements.btnNewFile.addEventListener('click', handleNewFile);
         this.elements.dropdownNewFile.addEventListener('click', handleNewFile);
@@ -100,7 +99,7 @@ class LipiApp {
             e.target.value = '';
         });
 
-        // NEW: Real-time typing triggers Unsaved State
+        // Typing in the Editor
         this.elements.mainEditor.addEventListener('input', (e) => {
             if (this.activeFileId) {
                 const file = this.openFiles.find(f => f.id === this.activeFileId);
@@ -114,7 +113,24 @@ class LipiApp {
                 }
             }
         });
+
+        // NEW: Inline Renaming Events
+        this.elements.fileNameDisplay.addEventListener('keydown', (e) => {
+            // Prevent entering new lines in the title
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.elements.fileNameDisplay.blur(); // Triggers the rename logic
+            }
+        });
+
+        this.elements.fileNameDisplay.addEventListener('blur', () => {
+            if (this.elements.fileNameDisplay.classList.contains('editable')) {
+                this.renameActiveFile(this.elements.fileNameDisplay.textContent.trim());
+            }
+        });
     }
+
+    // --- IndexedDB ---
 
     async initDB() {
         return new Promise((resolve, reject) => {
@@ -209,7 +225,6 @@ class LipiApp {
         }
     }
 
-    // --- NEW: UI Update for Unsaved State ---
     updateUnsavedUI() {
         if (!this.activeFileId) {
             this.elements.unsavedIndicator.style.display = 'none';
@@ -227,6 +242,29 @@ class LipiApp {
         }
     }
 
+    // --- NEW: Inline Renaming Logic ---
+    renameActiveFile(newName) {
+        if (!this.activeFileId) return;
+        const file = this.openFiles.find(f => f.id === this.activeFileId);
+        
+        if (!newName || newName === file.name) {
+            // Revert if empty or unchanged
+            this.elements.fileNameDisplay.textContent = file.name;
+            return;
+        }
+
+        file.name = newName;
+        
+        // Sever the file handle so the next 'Save' creates a new file instead of overwriting the old one
+        file.handle = null;
+        
+        // Force the app into an unsaved state to prompt the user to save the new file
+        file.isUnsaved = true;
+        
+        this.updateUnsavedUI();
+        this.updateSidebar();
+    }
+
     createNewFile() {
         const fileName = this.fileCounter === 0 ? 'Untitled.txt' : `Untitled-${this.fileCounter}.txt`;
         this.fileCounter++;
@@ -237,7 +275,7 @@ class LipiApp {
         if (this.supportsFileSystemAPI) {
             try {
                 const [fileHandle] = await window.showOpenFilePicker({
-                    types: [{ description: 'Text Files', accept: {'text/*': ['.txt', '.md', '.html', '.css', '.js', '.json']} }]
+                    types: [{ description: 'Text Files', accept: {'text/plain': ['.txt', '.md', '.html', '.css', '.js', '.json']} }]
                 });
                 const file = await fileHandle.getFile();
                 const content = await file.text();
@@ -270,7 +308,6 @@ class LipiApp {
 
     loadFileIntoEditor(fileName, content, fileHandle) {
         const fileId = `file-${Date.now()}`;
-        // NEW: added isUnsaved parameter
         this.openFiles.push({ id: fileId, name: fileName, content: content, handle: fileHandle, isUnsaved: false });
         this.switchToEditor(fileId);
         this.updateSidebar();
@@ -280,12 +317,20 @@ class LipiApp {
     switchToEditor(fileId) {
         this.activeFileId = fileId;
         const file = this.openFiles.find(f => f.id === fileId);
+        
         this.switchView('editor');
+        
+        // Make Title Editable
         this.elements.fileNameDisplay.textContent = file.name;
         this.elements.fileNameDisplay.classList.remove('brand-font');
+        this.elements.fileNameDisplay.classList.add('editable');
+        this.elements.fileNameDisplay.contentEditable = "true";
+        
+        // Enable Save As
+        this.elements.dropdownSaveAs.disabled = false;
         
         this.elements.mainEditor.value = file.content;
-        this.updateUnsavedUI(); // Sync the UI with the file's saved state
+        this.updateUnsavedUI(); 
         this.elements.mainEditor.focus();
     }
 
@@ -325,14 +370,55 @@ class LipiApp {
                 await writable.write(file.content);
                 await writable.close();
                 
-                // NEW: Reset unsaved state after successful write
                 this.markAsSaved(file);
-
             } catch (e) {
                 if (e.name !== 'AbortError') this.fallbackSaveDownload(file);
             }
         } else {
             this.fallbackSaveDownload(file);
+        }
+    }
+
+    // --- NEW: Save As Flow ---
+    async saveFileAs() {
+        if (!this.activeFileId) return;
+        const file = this.openFiles.find(f => f.id === this.activeFileId);
+        
+        this.toggleDropdown(false);
+
+        if (this.supportsFileSystemAPI) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: file.name,
+                    types: [{ description: 'Text Files', accept: {'text/plain': ['.txt', '.md', '.html', '.css', '.js', '.json']} }]
+                });
+                
+                file.handle = handle;
+                file.name = handle.name;
+                this.elements.fileNameDisplay.textContent = file.name;
+                
+                const writable = await handle.createWritable();
+                await writable.write(file.content);
+                await writable.close();
+                
+                this.saveToRecent(file.name, handle);
+                this.markAsSaved(file);
+            } catch (e) {
+                // User cancelled, do nothing
+            }
+        } else {
+            // Fallback Save As using browser prompt
+            let newName = prompt("Save file as:", file.name);
+            if (newName) {
+                if (!newName.includes('.')) newName += '.txt';
+                file.name = newName;
+                this.elements.fileNameDisplay.textContent = file.name;
+                
+                // Sever the handle just in case (though fallback doesn't use handles)
+                file.handle = null;
+                
+                this.fallbackSaveDownload(file);
+            }
         }
     }
 
@@ -345,11 +431,9 @@ class LipiApp {
         a.click();
         URL.revokeObjectURL(url);
         
-        // NEW: Reset unsaved state after download triggers
         this.markAsSaved(file);
     }
     
-    // NEW: Helper function to reset UI after save
     markAsSaved(file) {
         file.isUnsaved = false;
         this.updateUnsavedUI();
@@ -359,8 +443,14 @@ class LipiApp {
     activateWelcomeScreen() {
         this.activeFileId = null;
         this.switchView('welcome');
+        
+        // Remove Editable properties
         this.elements.fileNameDisplay.textContent = 'Lipi';
         this.elements.fileNameDisplay.classList.add('brand-font');
+        this.elements.fileNameDisplay.classList.remove('editable');
+        this.elements.fileNameDisplay.contentEditable = "false";
+        
+        this.elements.dropdownSaveAs.disabled = true;
         this.elements.unsavedIndicator.style.display = 'none';
         this.elements.saveBtn.disabled = true;
         this.updateSidebar();
@@ -383,7 +473,6 @@ class LipiApp {
             const li = document.createElement('li');
             li.className = `drawer-item ${file.id === this.activeFileId ? 'active' : ''}`;
             
-            // NEW: Add dot to sidebar items if unsaved
             const unsavedDot = file.isUnsaved ? `<span style="color: var(--md-sys-color-primary); font-size: 14px;">●</span>` : '';
             
             li.innerHTML = `
