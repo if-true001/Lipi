@@ -64,7 +64,7 @@ Lipi/
 ### Fixes & Refinements
 - `fix`: Resolved status bar click event bubbling to prevent mobile bottom sheet trigger when toggling Markdown view mode.
 - `fix`: Wired open/close modal event listeners for Open Source Licenses view action.
-- `fix`: Synced tab rename logic to dynamically trigger Markdown view mode and status bar updates.
+- `fix`: Synced tab rename logic to dynamically trigger Markdown view mode and status bar updates
 
 ---
 
