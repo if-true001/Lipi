@@ -1,411 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lipi</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <title>Lipi | The Web Notepad</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Roboto:wght@400;500;700&family=Supermercado+One&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
-    
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/layout.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Roboto:wght@400;500;700&family=Supermercado+One&display=swap"
+        rel="stylesheet">
+
+    <meta name="theme-color" content="#006874">
+    <link rel="icon" type="image/png" href="app/icons/icon.png">
+    <link rel="icon" type="image/svg+xml" href="app/icons/icon.svg">
+    <link rel="apple-touch-icon" href="app/icons/icon-192.png">
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="stylesheet" href="style.css">
+    <script src="app/js/sw-register.js"></script>
 </head>
+
 <body>
 
-    <input type="file" id="fallback-file-input" style="display: none;" accept=".txt,.md,.html,.css,.js,.json">
+    <header id="main-header">
+        <a href="#" class="logo-container">
+            <span class="logo-text brand-font">Lipi</span>
+            <div class="logo-svg-mask"></div>
+        </a>
+        <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="theme-icon">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
+        </button>
+    </header>
 
-    <div id="drawer-overlay" class="scrim hidden"></div>
-    <div id="modal-overlay" class="scrim hidden"></div>
-    
-    <div id="status-sheet-scrim" class="scrim hidden"></div>
-    <div id="status-bottom-sheet" class="m3-bottom-sheet hidden">
-        <div class="sheet-drag-handle"></div>
-        <h3 class="title-large" style="margin-bottom: 16px;">Document Info</h3>
-        <div class="sheet-content">
-            <div class="sheet-item"><span>Cursor</span><span id="sheet-cursor">Ln 1, Col 1</span></div>
-            <div class="sheet-item"><span>Length</span><span id="sheet-length">0 chars</span></div>
-            <div class="sheet-item" id="sheet-language-wrapper"><span>Language</span><span id="sheet-language">Plain Text</span></div>
-            <div class="sheet-item"><span>Line Endings</span><span id="sheet-crlf">Unix (LF)</span></div>
-            <div class="sheet-item"><span>Encoding</span><span id="sheet-encoding">UTF-8</span></div>
-        </div>
-    </div>
+    <main class="scroller">
 
-    <div id="licenses-modal" class="m3-dialog hidden">
-        <h3 class="title-large">Open Source Licenses</h3>
-        <div class="dialog-content">
-            
-            <div style="margin-bottom: 24px;">
-                <h4 class="title-medium" style="margin: 0 0 4px 0; color: var(--md-sys-color-on-surface);">Lipi</h4>
-                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; font-weight: 500;">MIT License &copy; 2026 Bibu S.K</p>
-                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
-                    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-                </p>
-                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
-                    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-                </p>
-                <p style="margin: 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
-                    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-                </p>
-            </div>
-
-            <div>
-                <h4 class="title-medium" style="margin: 0 0 4px 0; color: var(--md-sys-color-on-surface);">Marked.js</h4>
-                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; font-weight: 500; line-height: 1.5;">
-                    MIT License<br>
-                    Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/)<br>
-                    Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)
-                </p>
-                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
-                    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-                </p>
-                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
-                    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-                </p>
-                <p style="margin: 0 0 16px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
-                    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-                </p>
-
-                <p style="margin: 0 0 4px 0; color: var(--md-sys-color-on-surface); font-size: 14px; font-weight: 500;">Markdown License</p>
-                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; font-weight: 500;">Copyright &copy; 2004, John Gruber (http://daringfireball.net/)</p>
-                <p style="margin: 0 0 8px 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
-                    Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-                </p>
-                <ul style="margin: 0 0 8px 0; padding-left: 20px; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
-                    <li style="margin-bottom: 4px;">Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.</li>
-                    <li style="margin-bottom: 4px;">Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.</li>
-                    <li style="margin-bottom: 4px;">Neither the name “Markdown” nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.</li>
-                </ul>
-                <p style="margin: 0; color: var(--md-sys-color-outline); font-size: 14px; line-height: 1.5;">
-                    This software is provided by the copyright holders and contributors “as is” and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the copyright owner or contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
-                </p>
-            </div>
-
-        </div>
-        <div class="dialog-actions">
-            <button class="m3-btn m3-btn-filled" id="close-licenses-btn">Close</button>
-        </div>
-    </div>
-
-    <div id="save-as-modal" class="m3-dialog hidden">
-        <h3 class="title-large">Save As</h3>
-        <div class="dialog-content">
-            <input type="text" id="save-as-input" class="m3-text-input" placeholder="Enter file name..." autocomplete="off">
-        </div>
-        <div class="dialog-actions">
-            <button class="m3-btn m3-btn-text" id="modal-cancel-btn">Cancel</button>
-            <button class="m3-btn m3-btn-filled" id="modal-save-btn">Save</button>
-        </div>
-    </div>
-
-    <div id="unsaved-modal" class="m3-dialog hidden">
-        <h3 class="title-large" style="color: var(--md-sys-color-on-surface);">Save Changes?</h3>
-        <div class="dialog-content">
-            <p id="unsaved-modal-message" class="body-large" style="margin: 0; color: var(--md-sys-color-outline);"></p>
-        </div>
-        <div class="dialog-actions" style="margin-top: 8px;">
-            <button class="m3-btn m3-btn-text" id="modal-unsaved-cancel-btn">Cancel</button>
-            <div style="display: flex; gap: 8px;">
-                <button class="m3-btn m3-btn-text m3-btn-danger" id="modal-unsaved-discard-btn">Discard</button>
-                <button class="m3-btn m3-btn-filled" id="modal-unsaved-save-btn">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="editor-context-menu" class="custom-context-menu">
-        <button class="menu-item" id="edit-cut"><span class="material-symbols-rounded">content_cut</span> Cut</button>
-        <button class="menu-item" id="edit-copy"><span class="material-symbols-rounded">content_copy</span> Copy</button>
-        <button class="menu-item" id="edit-paste"><span class="material-symbols-rounded">content_paste</span> Paste</button>
-        <div class="menu-divider"></div>
-        <button class="menu-item" id="edit-undo"><span class="material-symbols-rounded">undo</span> Undo</button>
-        <button class="menu-item" id="edit-redo"><span class="material-symbols-rounded">redo</span> Redo</button>
-        <div class="menu-divider"></div>
-        <button class="menu-item m3-btn-danger" id="edit-delete"><span class="material-symbols-rounded">delete</span> Delete</button>
-    </div>
-
-    <div id="file-context-menu" class="custom-context-menu">
-        <button class="menu-item" id="ctx-open"><span class="material-symbols-rounded">open_in_new</span> Open</button>
-        <button class="menu-item" id="ctx-rename"><span class="material-symbols-rounded">edit</span> Rename</button>
-        <div class="menu-divider"></div>
-        <button class="menu-item m3-btn-danger" id="ctx-close"><span class="material-symbols-rounded">close</span> Close File</button>
-    </div>
-
-    <aside id="sidebar" class="md-drawer">
-        <div class="drawer-header">
-            <h2 class="title-large brand-font" style="font-size: 32px;">Lipi</h2>
-        </div>
-        
-        <div class="drawer-content">
-            <span class="label-large section-label">ACTIVE FILES</span>
-            <ul id="open-files-list" class="drawer-list">
-                <li class="drawer-item active" id="welcome-sidebar-item">
-                    <div class="file-info">
-                        <span class="material-symbols-rounded icon">waving_hand</span>
-                        <span class="file-name brand-font" style="font-size: 18px;">Lipi</span>
-                    </div>
-                </li>
-            </ul>
-        </div>
-
-        <div class="drawer-footer">
-            <button class="drawer-item" id="settings-btn">
-                <span class="material-symbols-rounded icon">settings</span>
-                <span class="file-name">Settings</span>
-            </button>
-        </div>
-    </aside>
-
-    <main id="workspace">
-        <header class="top-app-bar">
-            <div class="top-bar-left">
-                <button class="icon-btn" id="menu-btn" aria-label="Open menu">
-                    <span class="material-symbols-rounded">menu</span>
-                </button>
-                <span id="current-file-name" class="title-medium brand-font" style="font-size: 22px;">Lipi</span>
-                <span id="unsaved-indicator" style="display: none; color: var(--md-sys-color-primary); font-size: 14px; margin-left: -2px;">●</span>
-            </div>
-            
-            <div class="top-bar-right" id="top-bar-actions">
-                <div class="dropdown-anchor">
-                    <button class="icon-btn" id="add-btn" aria-label="Add new or open">
-                        <span class="material-symbols-rounded">add</span>
-                    </button>
-                    
-                    <div id="add-dropdown" class="m3-menu hidden">
-                        <button class="menu-item" id="dropdown-new-file">
-                            <span class="material-symbols-rounded">note_add</span> New File
-                        </button>
-                        <button class="menu-item" id="dropdown-open-file">
-                            <span class="material-symbols-rounded">folder_open</span> Open File
-                        </button>
-                        
-                        <div id="dropdown-recent-group">
-                            <div class="menu-divider"></div>
-                            <span class="menu-label">Recent</span>
-                            <div id="dropdown-recent-list"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dropdown-anchor">
-                    <button class="icon-btn dropdown-btn" id="save-btn" aria-label="Save options" disabled>
-                        <span id="main-save-icon" class="material-symbols-rounded">save</span>
-                        <span class="material-symbols-rounded" style="font-size: 20px;">arrow_drop_down</span>
-                    </button>
-                    
-                    <div id="save-dropdown" class="m3-menu hidden">
-                        <button class="menu-item" id="dropdown-action-save" disabled>
-                            <span id="icon-action-save" class="material-symbols-rounded">save</span> Save
-                        </button>
-                        <button class="menu-item" id="dropdown-action-save-as">
-                            <span id="icon-action-save-as" class="material-symbols-rounded">save_as</span> Save As...
-                        </button>
-                    </div>
+        <section class="snap-section hero-section" id="hero">
+            <div class="content">
+                <h1 class="brand-hero animate-on-snap">Your text,<br>unbound.</h1>
+                <p class="body-large animate-on-snap delay-1">A distraction-free notepad for the web. Fast, local, and
+                    simple.</p>
+                <div class="button-group animate-on-snap delay-2">
+                    <a href="app/app.html" class="btn btn-primary">Open Lipi</a>
+                    <button id="install-btn" class="btn btn-secondary" style="display: none;">Install PWA</button>
                 </div>
             </div>
-        </header>
+            <div class="scroll-indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 9 6 6 6-6" />
+                </svg>
+            </div>
+        </section>
 
-        <div id="welcome-view" class="editor-canvas active">
-            <div class="welcome-content">
-                <h1 class="brand-font brand-hero">Lipi</h1>
-                
-                <div class="action-columns">
-                    <div class="action-group">
-                        <span class="label-large">Start</span>
-                        <button class="text-btn" id="action-new-file">
-                            <span class="material-symbols-rounded">add</span> New File
-                        </button>
-                        <button class="text-btn" id="action-open-file">
-                            <span class="material-symbols-rounded">folder_open</span> Open File
-                        </button>
-                    </div>
+        <section class="snap-section feature-section alt-bg">
+            <div class="content">
+                <h2 class="brand-font animate-on-snap">Open. Edit.<br>Leave.</h2>
+                <p class="body-large animate-on-snap delay-1">
+                    Open a file, make your changes, and move on. No accounts, no uploads, no extra steps. Works across
+                    modern browsers, with additional native-like features available on supported browsers.
+                    <span class="tooltip-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="currentColor" class="info-icon">
+                            <path
+                                d="M11 17h2v-6h-2v6Zm1-8q.425 0 .713-.288T13 8q0-.425-.288-.713T12 7q-.425 0-.713.288T11 8q0 .425.288.713T12 9Zm0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.137 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.137T12 22Zm0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20Zm0-8Z" />
+                        </svg>
+                        <span class="m3-tooltip">
+                            Direct editing requires the <a
+                                href="https://developer.mozilla.org/en-US/docs/Web/API/File_System_API" target="_blank"
+                                rel="noopener noreferrer">File System Access API</a>, available on Chromium-based
+                            browsers (Chrome, Edge, Opera).
+                        </span>
+                    </span>
+                </p>
+            </div>
+        </section>
 
-                    <div class="action-group" id="welcome-recent-group">
-                        <span class="label-large">Recent</span>
-                        <div id="recent-files-container" class="recent-list"></div>
-                    </div>
+        <section class="snap-section feature-section">
+            <div class="content">
+                <h2 class="brand-font animate-on-snap">Your files.<br>Any text.</h2>
+                <p class="body-large animate-on-snap delay-1">From plain text to Markdown. Anything on the go.</p>
+            </div>
+        </section>
+
+        <section class="snap-section feature-section alt-bg-2">
+            <div class="content">
+                <h2 class="brand-font animate-on-snap">Looks right,<br>naturally.</h2>
+                <p class="body-large animate-on-snap delay-1">Clean, simple, familiar from the moment you open it.</p>
+                <div class="button-group animate-on-snap delay-2" style="margin-top: 2rem;">
+                    <a href="app/app.html" class="btn btn-primary">Start Writing</a>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div id="editor-view" class="editor-canvas hidden">
-            <div id="editor-container">
-                <div id="line-numbers-gutter" class="hidden">1</div>
-                <textarea id="main-editor" class="body-large" spellcheck="false" placeholder="Start typing..."></textarea>
+        <footer class="snap-footer alt-bg">
+            <div class="footer-content animate-on-snap">
+                <div class="footer-logo brand-font">Lipi</div>
+                <div class="footer-links">
+                    <a href="https://github.com/if-true001/Lipi" target="_blank">Repository</a>
+                    <a href="app/app.html">Launch App</a>
+                </div>
+                <p class="footer-credits label-large">Built for the web. Strictly local.</p>
+
+                <div class="footer-social">
+                    <a href="https://github.com/if-true001/Lipi" target="_blank" aria-label="GitHub">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                    </a>
+                </div>
             </div>
-            
-            <div id="markdown-preview" class="hidden">
-                <div id="markdown-preview-content"></div>
-            </div>
-            
-            <div id="status-bar">
-                <div class="status-left">
-                    <span class="status-item" id="status-cursor">Ln 1, Col 1</span>
-                    <span class="status-item" id="status-length">0 chars</span>
-                </div>
-                <div class="status-right" id="status-right-group">
-                    <span class="status-item" id="status-language">Plain Text</span>
-                    <span class="status-item" id="status-crlf">Unix (LF)</span>
-                    <span class="status-item" id="status-encoding">UTF-8</span>
-                </div>
-                <span class="material-symbols-rounded" id="status-expand-icon" style="display: none; font-size: 20px;">expand_less</span>
-            </div>
-        </div>
-
-        <div id="settings-view" class="editor-canvas hidden">
-            <div class="settings-content">
-                <h2 class="display-large" style="font-size: 32px; line-height: 1.2; margin-bottom: 8px;">Settings</h2>
-                
-                <div class="settings-card">
-                    <h3 class="label-large settings-card-title">Storage & Privacy</h3>
-                    
-                    <div class="setting-item" style="border-bottom: none; padding-bottom: 0;">
-                        <div class="setting-info">
-                            <span class="title-medium">Preserve Session Data</span>
-                            <span id="preserve-data-desc" class="body-large" style="opacity: 0.7; font-size: 14px;">Save settings and recent files across restarts</span>
-                        </div>
-                        <label class="m3-switch" aria-label="Toggle data preservation">
-                            <input type="checkbox" id="preserve-data-toggle">
-                            <span class="m3-switch-track">
-                                <span class="m3-switch-thumb"></span>
-                            </span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="settings-card">
-                    <h3 class="label-large settings-card-title">Appearance</h3>
-                    
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <span class="title-medium">Theme</span>
-                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Choose your preferred appearance</span>
-                        </div>
-                        <div class="dropdown-anchor" style="min-width: 180px;">
-                            <button class="m3-select-btn" id="theme-select-btn" aria-label="Select Theme">
-                                <span id="theme-select-label">System Default</span>
-                                <span class="material-symbols-rounded">arrow_drop_down</span>
-                            </button>
-                            <div id="theme-dropdown" class="m3-menu hidden" style="width: 100%;">
-                                <button class="menu-item theme-option" data-theme-val="system">System Default</button>
-                                <button class="menu-item theme-option" data-theme-val="light">Light</button>
-                                <button class="menu-item theme-option" data-theme-val="dark">Dark</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <span class="title-medium">Show Line Numbers</span>
-                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Display a line number gutter in the editor</span>
-                        </div>
-                        <label class="m3-switch" aria-label="Toggle line numbers">
-                            <input type="checkbox" id="line-numbers-toggle">
-                            <span class="m3-switch-track">
-                                <span class="m3-switch-thumb"></span>
-                            </span>
-                        </label>
-                    </div>
-
-                    <div class="setting-item" id="mobile-bar-setting" style="display: none;">
-                        <div class="setting-info">
-                            <span class="title-medium">Classic Status Bar</span>
-                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Use desktop-style status bar instead of bottom sheet</span>
-                        </div>
-                        <label class="m3-switch" aria-label="Toggle mobile bar override">
-                            <input type="checkbox" id="mobile-bar-toggle">
-                            <span class="m3-switch-track">
-                                <span class="m3-switch-thumb"></span>
-                            </span>
-                        </label>
-                    </div>
-
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <span class="title-medium">App Font</span>
-                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Change the interface font</span>
-                        </div>
-                        <div class="dropdown-anchor" style="min-width: 180px;">
-                            <button class="m3-select-btn" id="ui-font-btn" aria-label="Select App Font">
-                                <span id="ui-font-label">Roboto (Default)</span>
-                                <span class="material-symbols-rounded">arrow_drop_down</span>
-                            </button>
-                            <div id="ui-font-dropdown" class="m3-menu hidden" style="width: 100%;">
-                                <button class="menu-item ui-font-option" data-font-val="default" data-label="Roboto (Default)">Roboto (Default)</button>
-                                <button class="menu-item ui-font-option" data-font-val="system-ui, -apple-system, sans-serif" data-label="System UI">System UI</button>
-                                <button class="menu-item ui-font-option" data-font-val="Arial, Helvetica, sans-serif" data-label="Arial">Arial</button>
-                                <button class="menu-item ui-font-option" data-font-val="'Times New Roman', Times, serif" data-label="Times New Roman">Times New Roman</button>
-                                <button class="menu-item ui-font-option" data-font-val="'Courier New', Courier, monospace" data-label="Courier New">Courier New</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <span class="title-medium">Editor Font</span>
-                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Change the workspace font</span>
-                        </div>
-                        <div class="dropdown-anchor" style="min-width: 180px;">
-                            <button class="m3-select-btn" id="editor-font-btn" aria-label="Select Editor Font">
-                                <span id="editor-font-label">JetBrains Mono (Default)</span>
-                                <span class="material-symbols-rounded">arrow_drop_down</span>
-                            </button>
-                            <div id="editor-font-dropdown" class="m3-menu hidden" style="width: 100%;">
-                                <button class="menu-item editor-font-option" data-font-val="default" data-label="JetBrains Mono (Default)">JetBrains Mono (Default)</button>
-                                <button class="menu-item editor-font-option" data-font-val="monospace" data-label="System Monospace">System Monospace</button>
-                                <button class="menu-item editor-font-option" data-font-val="'Courier New', Courier, monospace" data-label="Courier New">Courier New</button>
-                                <button class="menu-item editor-font-option" data-font-val="Arial, Helvetica, sans-serif" data-label="Arial">Arial</button>
-                                <button class="menu-item editor-font-option" data-font-val="'Times New Roman', Times, serif" data-label="Times New Roman">Times New Roman</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="setting-item" style="border-bottom: none; padding-top: 8px; padding-bottom: 0;">
-                         <button class="m3-btn m3-btn-text" id="reset-fonts-btn" style="padding-left: 0;">
-                             <span class="material-symbols-rounded" style="margin-right: 8px;">restart_alt</span> Reset Fonts to Defaults
-                         </button>
-                    </div>
-                </div>
-
-                <div class="settings-card">
-                    <h3 class="label-large settings-card-title">About Lipi</h3>
-                    
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <span class="title-medium">Version</span>
-                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">1.0.0</span>
-                        </div>
-                    </div>
-                    
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <span class="title-medium">Source Code</span>
-                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">View the project on GitHub</span>
-                        </div>
-                        <a href="https://github.com/if-true001/Lipi" target="_blank" rel="noopener noreferrer" class="m3-btn m3-btn-text" style="padding: 0 16px; text-decoration: none;">
-                            <span class="material-symbols-rounded" style="margin-right: 8px; font-size: 18px;">open_in_new</span> GitHub
-                        </a>
-                    </div>
-
-                    <div class="setting-item" style="border-bottom: none; padding-bottom: 0;">
-                        <div class="setting-info">
-                            <span class="title-medium">Open Source Licenses</span>
-                            <span class="body-large" style="opacity: 0.7; font-size: 14px;">Third-party and app licenses</span>
-                        </div>
-                        <button class="m3-btn m3-btn-text" id="view-licenses-btn" style="padding: 0 16px;">
-                            View
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+        </footer>
 
     </main>
 
-    <script src="js/app.js" type="module"></script>
+    <script src="script.js"></script>
 </body>
+
 </html>

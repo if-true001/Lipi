@@ -766,7 +766,7 @@ class LipiApp {
                 this.elements.mainEditor.dispatchEvent(new Event('input'));
                 this.updateStatusBar(); 
             } catch (err) {
-                console.error("Paste permission denied or unsupported");
+                // console.error("Paste permission denied or unsupported");
             }
             this.hideContextMenu();
         });
@@ -1309,7 +1309,7 @@ class LipiApp {
                 this.loadFileIntoEditor(file.name, content, fileHandle);
                 this.saveToRecent(file.name, fileHandle);
             } catch (e) {
-                console.log('Picker cancelled');
+                // console.log('Picker cancelled');
             }
         } else {
             this.elements.fallbackFileInput.click();
