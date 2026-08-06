@@ -1,10 +1,6 @@
 const CACHE_NAME = 'lipi-v1.0.0';
 
 const APP_SHELL_ASSETS = [
-    './',
-    './index.html',
-    './script.js',
-    './style.css',
     './manifest.json',
     './app/app.html',
     './app/css/main.css',
@@ -113,14 +109,11 @@ self.addEventListener('fetch', (event) => {
                     if (event.request.mode === 'navigate') {
                         return caches.match('./app/app.html').then(res => {
                             if (res) return res;
-                            return caches.match('./index.html').then(res2 => {
-                                if (res2) return res2;
-                                // Return a fallback 200 response to satisfy PWA install criteria before caching
-                                return new Response(
-                                    '<!DOCTYPE html><html><head><title>Offline - Lipi</title></head><body><h1>Lipi Offline</h1><p>Please connect to the internet to load Lipi, or install it as an app.</p></body></html>',
-                                    { status: 200, headers: { 'Content-Type': 'text/html' } }
-                                );
-                            });
+                            // Return a fallback 200 response to satisfy PWA install criteria before caching
+                            return new Response(
+                                '<!DOCTYPE html><html><head><title>Offline - Lipi</title></head><body><h1>Lipi Offline</h1><p>Please connect to the internet to load Lipi, or install it as an app.</p></body></html>',
+                                { status: 200, headers: { 'Content-Type': 'text/html' } }
+                            );
                         });
                     }
                     throw err;
