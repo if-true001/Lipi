@@ -48,7 +48,7 @@ Lipi/
 
 ---
 
-## Release Notes — Version 1.0.0
+## Release Notes — Version 1.1.0
 
 ### Added
 - `feat`: add PWA file handling support for text and markdown files
