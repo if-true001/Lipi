@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lipi-v1.1.0';
+const CACHE_NAME = 'lipi-v1.1.1';
 
 const APP_SHELL_ASSETS = [
     './manifest.json',
@@ -76,6 +76,48 @@ self.addEventListener('message', (event) => {
 
 // --- Fetch Handler ---
 self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+    if (event.request.method === 'POST' && url.pathname.endsWith('/app/handle-share')) {
+        event.respondWith((async () => {
+            try {
+                const formData = await event.request.formData();
+                const files = formData.getAll('files');
+                const shareId = `share-${Date.now()}`;
+                const cache = await caches.open('lipi-shared-files');
+                const fileMetadata = [];
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const cacheKey = `/shared-file/${shareId}/${i}`;
+                    await cache.put(cacheKey, new Response(file, {
+                        headers: {
+                            'Content-Type': file.type,
+                            'X-File-Name': encodeURIComponent(file.name)
+                        }
+                    }));
+                    fileMetadata.push({
+                        name: file.name,
+                        url: cacheKey
+                    });
+                }
+                
+                await cache.put(`/shared-metadata/${shareId}`, new Response(JSON.stringify(fileMetadata), {
+                    headers: { 'Content-Type': 'application/json' }
+                }));
+
+                const redirectUrl = new URL('./app.html', event.request.url);
+                redirectUrl.searchParams.set('shareId', shareId);
+                return Response.redirect(redirectUrl.href, 303);
+            } catch (e) {
+                console.error('Error handling share target POST:', e);
+                const redirectUrl = new URL('./app.html', event.request.url);
+                redirectUrl.searchParams.set('shareError', 'true');
+                return Response.redirect(redirectUrl.href, 303);
+            }
+        })());
+        return;
+    }
+
     // Only handle GET requests
     if (event.request.method !== 'GET') return;
 

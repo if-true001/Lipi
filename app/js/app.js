@@ -52,6 +52,7 @@ class LipiApp {
                 this.renderMemoryRecentFiles();
             }
             this.initLaunchQueue();
+            this.handleSharedFiles();
         });
     }
 
@@ -70,6 +71,45 @@ class LipiApp {
                     }
                 }
             });
+        }
+    }
+
+    async handleSharedFiles() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareId = urlParams.get('shareId');
+        
+        if (urlParams.get('shareError')) {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('shareError');
+            window.history.replaceState({}, document.title, cleanUrl.pathname + cleanUrl.search);
+            alert("Failed to receive shared files.");
+            return;
+        }
+
+        if (!shareId) return;
+
+        try {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('shareId');
+            window.history.replaceState({}, document.title, cleanUrl.pathname + cleanUrl.search);
+            
+            const cache = await caches.open('lipi-shared-files');
+            const metadataResponse = await cache.match(`/shared-metadata/${shareId}`);
+            if (!metadataResponse) return;
+            
+            const fileMetadata = await metadataResponse.json();
+            for (const item of fileMetadata) {
+                const fileResponse = await cache.match(item.url);
+                if (fileResponse) {
+                    const content = await fileResponse.text();
+                    const fileName = decodeURIComponent(fileResponse.headers.get('X-File-Name') || item.name);
+                    this.loadFileIntoEditor(fileName, content, null);
+                }
+                await cache.delete(item.url);
+            }
+            await cache.delete(`/shared-metadata/${shareId}`);
+        } catch (e) {
+            console.error('Failed to load shared files:', e);
         }
     }
 

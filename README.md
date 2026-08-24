@@ -48,14 +48,16 @@ Lipi/
 
 ---
 
-## Release Notes — Version 1.1.0
+## Release Notes — Version 1.1.1
 
 ### Added
-- `feat`: add PWA file handling support for text and markdown files
+- `feat`: add PWA file handling and web share target support
 
-- Updated `manifest.json` with `file_handlers` for `.txt`, `.md`, and general text/code file extensions.
-- Registered a `launchQueue` consumer in `app.js` to automatically read and load files opened via OS file associations.
-- Bumped app and service worker cache version to `1.1.0` to force cache invalidation.
+- Configure `file_handlers` and `launch_handler` in `manifest.json` to handle OS file associations for `.txt`, `.md`, and other text files.
+- Configure `share_target` in `manifest.json` to allow Lipi to appear in the system share sheet for files.
+- Intercept multipart POST share requests in `service_worker.js` to cache files and redirect to the application.
+- Implement client-side launch queue and shared file retrieval from cache in `app.js` to load files automatically.
+- Bumped app and service worker cache version to `1.1.1` to force cache invalidation.
 
 ---
 

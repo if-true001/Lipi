@@ -59,5 +59,35 @@
   ],
   "launch_handler": {
     "client_mode": "focus-existing"
+  },
+  "share_target": {
+    "action": "app/handle-share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "files",
+          "accept": [
+            "text/plain",
+            "text/markdown",
+            "text/*",
+            ".txt",
+            ".md",
+            ".json",
+            ".js",
+            ".css",
+            ".html",
+            ".csv",
+            ".tsv",
+            ".xml",
+            ".ini",
+            ".yaml",
+            ".yml",
+            ".log"
+          ]
+        }
+      ]
+    }
   }
 }
