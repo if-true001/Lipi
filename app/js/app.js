@@ -51,7 +51,26 @@ class LipiApp {
             } else {
                 this.renderMemoryRecentFiles();
             }
+            this.initLaunchQueue();
         });
+    }
+
+    initLaunchQueue() {
+        if ('launchQueue' in window) {
+            window.launchQueue.setConsumer(async (launchParams) => {
+                if (!launchParams.files || launchParams.files.length === 0) return;
+                for (const fileHandle of launchParams.files) {
+                    try {
+                        const file = await fileHandle.getFile();
+                        const content = await file.text();
+                        this.loadFileIntoEditor(file.name, content, fileHandle);
+                        this.saveToRecent(file.name, fileHandle);
+                    } catch (e) {
+                        console.error('Failed to open launched file:', e);
+                    }
+                }
+            });
+        }
     }
 
     initDOM() {

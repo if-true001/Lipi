@@ -31,5 +31,33 @@
       "type": "image/svg+xml",
       "purpose": "any"
     }
-  ]
+  ],
+  "file_handlers": [
+    {
+      "action": "app/app.html",
+      "name": "Text File",
+      "accept": {
+        "text/plain": [".txt"],
+        "text/markdown": [".md"],
+        "text/*": [
+          ".txt",
+          ".md",
+          ".html",
+          ".css",
+          ".js",
+          ".json",
+          ".csv",
+          ".tsv",
+          ".xml",
+          ".ini",
+          ".yaml",
+          ".yml",
+          ".log"
+        ]
+      }
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
 }

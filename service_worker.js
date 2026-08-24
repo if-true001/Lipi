@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lipi-v1.0.0';
+const CACHE_NAME = 'lipi-v1.1.0';
 
 const APP_SHELL_ASSETS = [
     './manifest.json',

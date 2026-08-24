@@ -51,20 +51,11 @@ Lipi/
 ## Release Notes — Version 1.0.0
 
 ### Added
-- `feat`: Integrated `marked.js` for real-time Markdown preview with interactive mode toggling in the status bar.
-- `feat`: Added **About Lipi** section in Settings with versioning (`1.0.0`), GitHub link (`https://github.com/if-true001/Lipi`), and Open Source Licenses modal.
-- `feat`: Added `THIRD_PARTY_LICENSES.md` file in repository root for third-party open-source notices.
-- `feat`: Configured full Progressive Web App (PWA) compatibility with `manifest.json` and a robust `service_worker.js` offline cache.
+- `feat`: add PWA file handling support for text and markdown files
 
-### Styling & UI
-- `style`: Designed Markdown preview pane with neutral typography, styled inline `code` highlights, pre-blocks, and table rendering.
-- `style`: Formatted Open Source Licenses modal with scrollable content area (`50vh`) and clean HTML hierarchy.
-- `style`: Added interactive cursor and underline indicators for `.md` language status pill.
-
-### Fixes & Refinements
-- `fix`: Resolved status bar click event bubbling to prevent mobile bottom sheet trigger when toggling Markdown view mode.
-- `fix`: Wired open/close modal event listeners for Open Source Licenses view action.
-- `fix`: Synced tab rename logic to dynamically trigger Markdown view mode and status bar updates
+- Updated `manifest.json` with `file_handlers` for `.txt`, `.md`, and general text/code file extensions.
+- Registered a `launchQueue` consumer in `app.js` to automatically read and load files opened via OS file associations.
+- Bumped app and service worker cache version to `1.1.0` to force cache invalidation.
 
 ---
 
