@@ -48,16 +48,20 @@ Lipi/
 
 ---
 
-## Release Notes — Version 1.1.1
+## Release Notes — Version 1.1.2
 
 ### Added
-- `feat`: add PWA file handling and web share target support
+- `fix`: enable web share target on Android
 
-- Configure `file_handlers` and `launch_handler` in `manifest.json` to handle OS file associations for `.txt`, `.md`, and other text files.
-- Configure `share_target` in `manifest.json` to allow Lipi to appear in the system share sheet for files.
-- Intercept multipart POST share requests in `service_worker.js` to cache files and redirect to the application.
-- Implement client-side launch queue and shared file retrieval from cache in `app.js` to load files automatically.
-- Bumped app and service worker cache version to `1.1.1` to force cache invalidation.
+- Add common MIME types (application/octet-stream, application/json,
+  application/javascript, text/css, text/html) to manifest.json share_target params.
+  This allows Android system share sheets, which filter strictly by MIME type,
+  to display Lipi for shared markdown and config files.
+- Normalize incoming share target pathname in service_worker.js to handle
+  trailing slashes robustly.
+- Resolve service worker redirect URLs relative to self.registration.scope
+  instead of event.request.url to prevent incorrect directory path resolution.
+- Bumped app and service worker cache version to `1.1.2` to force cache invalidation.
 
 ---
 

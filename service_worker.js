@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lipi-v1.1.1';
+const CACHE_NAME = 'lipi-v1.1.2';
 
 const APP_SHELL_ASSETS = [
     './manifest.json',
@@ -77,7 +77,12 @@ self.addEventListener('message', (event) => {
 // --- Fetch Handler ---
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
-    if (event.request.method === 'POST' && url.pathname.endsWith('/app/handle-share')) {
+    let pathname = url.pathname;
+    if (pathname.endsWith('/')) {
+        pathname = pathname.slice(0, -1);
+    }
+
+    if (event.request.method === 'POST' && pathname.endsWith('/app/handle-share')) {
         event.respondWith((async () => {
             try {
                 const formData = await event.request.formData();
@@ -105,12 +110,12 @@ self.addEventListener('fetch', (event) => {
                     headers: { 'Content-Type': 'application/json' }
                 }));
 
-                const redirectUrl = new URL('./app.html', event.request.url);
+                const redirectUrl = new URL('app/app.html', self.registration.scope);
                 redirectUrl.searchParams.set('shareId', shareId);
                 return Response.redirect(redirectUrl.href, 303);
             } catch (e) {
                 console.error('Error handling share target POST:', e);
-                const redirectUrl = new URL('./app.html', event.request.url);
+                const redirectUrl = new URL('app/app.html', self.registration.scope);
                 redirectUrl.searchParams.set('shareError', 'true');
                 return Response.redirect(redirectUrl.href, 303);
             }

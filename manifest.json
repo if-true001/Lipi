@@ -71,7 +71,12 @@
           "accept": [
             "text/plain",
             "text/markdown",
+            "text/css",
+            "text/html",
             "text/*",
+            "application/octet-stream",
+            "application/json",
+            "application/javascript",
             ".txt",
             ".md",
             ".json",
